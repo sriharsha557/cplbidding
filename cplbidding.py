@@ -4,9 +4,16 @@ from datetime import datetime
 import io
 from PIL import Image
 import os
+from pathlib import Path
 
 # Page config
-st.set_page_config(page_title="IPL Company Auction", layout="wide", page_icon="🏏")
+st.set_page_config(page_title="CPL Company Auction", layout="wide", page_icon="🏏")
+
+# Get base directory
+BASE_DIR = Path(__file__).parent if "__file__" in globals() else Path.cwd()
+ASSETS_DIR = BASE_DIR / "assets"
+IMAGES_DIR = ASSETS_DIR / "images"
+EXCEL_PATH = ASSETS_DIR / "Cpl_data.xlsx"
 
 # Initialize session state
 if 'initialized' not in st.session_state:
@@ -30,15 +37,37 @@ ROLE_EMOJIS = {
     'All-rounder': '⚡'
 }
 
-def load_team_logo(logo_filename):
-    """Load team logo from file"""
+def load_team_logo(team_name):
+    """Load team logo from assets/images folder"""
     try:
-        if logo_filename and os.path.exists(logo_filename):
-            img = Image.open(logo_filename)
+        # Try different image formats
+        image_path = None
+        for ext in ['.png', '.jpg', '.jpeg', '.PNG', '.JPG', '.JPEG']:
+            test_path = IMAGES_DIR / f"{team_name}{ext}"
+            if test_path.exists():
+                image_path = test_path
+                break
+        
+        if image_path and image_path.exists():
+            img = Image.open(image_path)
             img = img.resize((200, 200))
             return img
         return None
-    except:
+    except Exception as e:
+        st.warning(f"Could not load logo for {team_name}: {str(e)}")
+        return None
+
+def load_player_photo(photo_filename):
+    """Load player photo from assets/images folder"""
+    try:
+        if photo_filename and pd.notna(photo_filename) and str(photo_filename).strip():
+            image_path = IMAGES_DIR / str(photo_filename)
+            if image_path.exists():
+                img = Image.open(image_path)
+                img = img.resize((200, 200))
+                return img
+        return None
+    except Exception as e:
         return None
 
 def initialize_teams_from_excel(teams_df, max_tokens, max_squad_size):
@@ -48,7 +77,7 @@ def initialize_teams_from_excel(teams_df, max_tokens, max_squad_size):
         team_name = row['TeamName']
         teams[team_name] = {
             'id': row['TeamID'],
-            'logo': row.get('LogoFile', None),
+            'logo': team_name,  # Use team name to find logo
             'tokens_left': max_tokens,
             'squad': [],
             'max_tokens': max_tokens,
@@ -122,10 +151,13 @@ def update_excel_files():
             # Update players file with sold status
             players_df = st.session_state.players_df.copy()
             
-            # Add sold status columns
-            players_df['Status'] = 'Unsold'
-            players_df['SoldTo'] = ''
-            players_df['SoldPrice'] = 0
+            # Add sold status columns if they don't exist
+            if 'Status' not in players_df.columns:
+                players_df['Status'] = 'Unsold'
+            if 'SoldTo' not in players_df.columns:
+                players_df['SoldTo'] = ''
+            if 'SoldPrice' not in players_df.columns:
+                players_df['SoldPrice'] = 0
             
             # Mark sold players
             for history in st.session_state.auction_history:
@@ -137,7 +169,7 @@ def update_excel_files():
             # Mark explicitly unsold players
             for unsold in st.session_state.unsold_players:
                 mask = players_df['Name'] == unsold['Name']
-                if players_df.loc[mask, 'Status'].values[0] != 'Sold':
+                if len(players_df.loc[mask]) > 0 and players_df.loc[mask, 'Status'].values[0] != 'Sold':
                     players_df.loc[mask, 'Status'] = 'Unsold'
             
             # Save to Excel
@@ -146,26 +178,36 @@ def update_excel_files():
         except Exception as e:
             st.error(f"Error updating Excel: {str(e)}")
 
-def create_sample_data():
-    """Create sample player and team data"""
-    players_df = pd.DataFrame({
-        'PlayerID': ['P001', 'P002', 'P003', 'P004', 'P005', 'P006', 'P007', 'P008'],
-        'Name': ['Rahul Sharma', 'Ankit Verma', 'Neha Reddy', 'Arjun Patel', 
-                 'Priya Singh', 'Karan Mehta', 'Sneha Gupta', 'Vivek Kumar'],
-        'Role': ['Batsman', 'Bowler', 'WicketKeeper', 'All-rounder', 
-                 'Batsman', 'Bowler', 'All-rounder', 'Batsman'],
-        'BaseTokens': [20, 15, 18, 25, 22, 16, 24, 19],
-        'PhotoFileName': ['', '', '', '', '', '', '', '']
-    })
-    
-    teams_df = pd.DataFrame({
-        'TeamID': ['T01', 'T02', 'T03', 'T04', 'T05', 'T06', 'T07', 'T08'],
-        'TeamName': ['Team Red', 'Team Blue', 'Team Green', 'Team Yellow',
-                     'Team Orange', 'Team Purple', 'Team Pink', 'Team Cyan'],
-        'LogoFile': ['', '', '', '', '', '', '', '']
-    })
-    
-    return players_df, teams_df
+def load_data_from_excel():
+    """Load players and teams from Cpl_data.xlsx"""
+    try:
+        if not EXCEL_PATH.exists():
+            st.error(f"Excel file not found at {EXCEL_PATH}")
+            st.info(f"Looking for file at: {EXCEL_PATH.absolute()}")
+            return None, None
+        
+        # Read all sheets
+        xls = pd.ExcelFile(EXCEL_PATH)
+        
+        # Load Players sheet
+        if 'Players' in xls.sheet_names:
+            players_df = pd.read_excel(EXCEL_PATH, sheet_name='Players')
+        else:
+            # Try first sheet
+            players_df = pd.read_excel(EXCEL_PATH, sheet_name=0)
+        
+        # Load Teams sheet
+        if 'Teams' in xls.sheet_names:
+            teams_df = pd.read_excel(EXCEL_PATH, sheet_name='Teams')
+        else:
+            # Try second sheet
+            teams_df = pd.read_excel(EXCEL_PATH, sheet_name=1)
+        
+        return players_df, teams_df
+    except Exception as e:
+        st.error(f"Error loading Excel file: {str(e)}")
+        st.info(f"Expected path: {EXCEL_PATH.absolute()}")
+        return None, None
 
 # Custom CSS
 st.markdown("""
@@ -198,50 +240,58 @@ st.markdown("""
 with st.sidebar:
     st.title("⚙️ Auction Setup")
     
+    # Show paths for debugging
+    with st.expander("📁 File Paths"):
+        st.code(f"Base Dir: {BASE_DIR.absolute()}")
+        st.code(f"Assets Dir: {ASSETS_DIR.absolute()}")
+        st.code(f"Images Dir: {IMAGES_DIR.absolute()}")
+        st.code(f"Excel Path: {EXCEL_PATH.absolute()}")
+        st.code(f"Excel Exists: {EXCEL_PATH.exists()}")
+        st.code(f"Images Dir Exists: {IMAGES_DIR.exists()}")
+    
     if not st.session_state.auction_started:
         st.subheader("1. Configure Auction")
         st.session_state.max_tokens = st.number_input("Max Tokens per Team", 500, 5000, 1000, 100)
         st.session_state.max_squad_size = st.number_input("Max Squad Size", 10, 25, 15, 1)
         
-        st.subheader("2. Upload Data")
-        use_sample = st.checkbox("Use Sample Data", value=True)
+        st.subheader("2. Load Data")
         
-        if use_sample:
-            players_df, teams_df = create_sample_data()
-            st.session_state.players_df = players_df
-            st.session_state.teams = initialize_teams_from_excel(teams_df, 
-                                                                 st.session_state.max_tokens,
-                                                                 st.session_state.max_squad_size)
-            st.success(f"✅ Loaded {len(players_df)} players & {len(teams_df)} teams")
-        else:
-            players_file = st.file_uploader("Upload Players Excel", type=['xlsx'], key='players')
-            teams_file = st.file_uploader("Upload Teams Excel", type=['xlsx'], key='teams')
+        # Load from Cpl_data.xlsx
+        if st.button("📂 Load CPL Data", type="primary"):
+            players_df, teams_df = load_data_from_excel()
             
-            if players_file and teams_file:
-                # Save uploaded files
-                st.session_state.players_file_path = f"players_{datetime.now().strftime('%Y%m%d_%H%M%S')}.xlsx"
-                with open(st.session_state.players_file_path, 'wb') as f:
-                    f.write(players_file.getbuffer())
-                
-                st.session_state.teams_file_path = f"teams_{datetime.now().strftime('%Y%m%d_%H%M%S')}.xlsx"
-                with open(st.session_state.teams_file_path, 'wb') as f:
-                    f.write(teams_file.getbuffer())
-                
-                # Load data
-                st.session_state.players_df = pd.read_excel(st.session_state.players_file_path)
-                teams_df = pd.read_excel(st.session_state.teams_file_path)
-                st.session_state.teams = initialize_teams_from_excel(teams_df,
-                                                                     st.session_state.max_tokens,
-                                                                     st.session_state.max_squad_size)
-                
-                st.success(f"✅ Loaded {len(st.session_state.players_df)} players & {len(teams_df)} teams")
+            if players_df is not None and teams_df is not None:
+                st.session_state.players_df = players_df
+                st.session_state.players_file_path = str(EXCEL_PATH)
+                st.session_state.teams = initialize_teams_from_excel(
+                    teams_df, 
+                    st.session_state.max_tokens,
+                    st.session_state.max_squad_size
+                )
+                st.success(f"✅ Loaded {len(players_df)} players & {len(teams_df)} teams")
+            else:
+                st.error("Failed to load data from Cpl_data.xlsx")
         
-        if st.button("🚀 Start Auction", type="primary"):
+        # Show data preview if loaded
+        if st.session_state.players_df is not None:
+            with st.expander("👀 Preview Players"):
+                st.dataframe(st.session_state.players_df.head())
+            
+            with st.expander("👀 Preview Teams"):
+                teams_preview = pd.DataFrame([
+                    {'Team': name, 'ID': data['id']} 
+                    for name, data in st.session_state.teams.items()
+                ])
+                st.dataframe(teams_preview)
+        
+        st.divider()
+        
+        if st.button("🚀 Start Auction", type="primary", disabled=(st.session_state.players_df is None)):
             if st.session_state.players_df is not None and len(st.session_state.teams) > 0:
                 st.session_state.auction_started = True
                 st.rerun()
             else:
-                st.error("Please load players and teams data!")
+                st.error("Please load players and teams data first!")
     
     else:
         st.success("🎯 Auction in Progress")
@@ -257,32 +307,31 @@ with st.sidebar:
         
         progress = (len(st.session_state.auction_history) + len(st.session_state.unsold_players)) / len(st.session_state.players_df)
         st.progress(progress)
-        
-        # View Unsold Players button
-        if len(st.session_state.unsold_players) > 0:
-            if st.button("👁️ View Unsold Players", use_container_width=True):
-                st.session_state.show_unsold = True
 
 # Main content
 if not st.session_state.auction_started:
-    st.title("🏏 IPL-Style Company Auction")
+    st.title("🏏 CPL Company Auction")
     st.markdown("""
-    ### Welcome to the Auction Platform!
+    ### Welcome to the CPL Auction Platform!
     
     **Setup Instructions:**
-    1. Configure max tokens and squad size
-    2. Upload Excel files:
-       - **Players.xlsx**: PlayerID, Name, Role, BaseTokens, PhotoFileName
-       - **Teams.xlsx**: TeamID, TeamName, LogoFile
+    1. Configure max tokens and squad size in the sidebar
+    2. Click "Load CPL Data" to load data from `assets/Cpl_data.xlsx`
     3. Click "Start Auction" to begin
+    
+    **Data Structure:**
+    - **Players Sheet**: PlayerID, Name, Role, BaseTokens, PhotoFileName (optional)
+    - **Teams Sheet**: TeamID, TeamName
+    - **Team logos**: Place in `assets/images/` with team name (e.g., `Team Red.png`)
+    - **Player photos**: Place in `assets/images/` and reference in PhotoFileName column
     
     **Features:**
     - 🪙 Token-based bidding system
-    - 🖼️ Team logos (200x200px)
+    - 🖼️ Team logos and player photos
     - 📊 Live team dashboards
     - 🎯 Role-based squad management
     - 📈 Real-time auction history
-    - 👁️ View unsold players
+    - 👁️ View and reassign unsold players
     - 💾 Auto-update Excel files
     """)
     
@@ -307,14 +356,12 @@ else:
                     
                     with cols[col_idx]:
                         # Load and display logo
-                        logo_img = load_team_logo(team_data['logo']) if team_data['logo'] else None
+                        logo_img = load_team_logo(team_name)
                         
                         if logo_img:
                             st.image(logo_img, width=100)
                         
                         st.markdown(f"### {team_name}")
-                        
-                        tokens_pct = (team_data['tokens_left'] / team_data['max_tokens']) * 100
                         
                         st.metric("Tokens Left", f"🪙 {team_data['tokens_left']}", 
                                  delta=f"-{team_data['max_tokens'] - team_data['tokens_left']}")
@@ -343,12 +390,9 @@ else:
                 st.subheader("🎯 Current Player")
                 
                 # Display player photo if available
-                if player.get('PhotoFileName') and os.path.exists(player['PhotoFileName']):
-                    try:
-                        player_img = Image.open(player['PhotoFileName'])
-                        st.image(player_img, width=200)
-                    except:
-                        pass
+                player_img = load_player_photo(player.get('PhotoFileName'))
+                if player_img:
+                    st.image(player_img, width=200)
                 
                 # Player card
                 st.markdown(f"""
@@ -481,6 +525,11 @@ else:
                     if idx < len(st.session_state.unsold_players):
                         player = st.session_state.unsold_players[idx]
                         with cols[j]:
+                            # Display player photo if available
+                            player_img = load_player_photo(player.get('PhotoFileName'))
+                            if player_img:
+                                st.image(player_img, width=150)
+                            
                             st.markdown(f"""
                             <div style='background: #ff6b6b; padding: 15px; border-radius: 10px; color: white; text-align: center;'>
                                 <h4 style='margin: 0;'>{player['Name']}</h4>
