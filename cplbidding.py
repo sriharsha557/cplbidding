@@ -37,24 +37,18 @@ ROLE_EMOJIS = {
     'All-rounder': '⚡'
 }
 
-def load_team_logo(team_name):
-    """Load team logo from assets/images folder"""
+def load_team_logo(logo_filename):
+    """Load team logo from assets/images folder using filename"""
     try:
-        # Try different image formats
-        image_path = None
-        for ext in ['.png', '.jpg', '.jpeg', '.PNG', '.JPG', '.JPEG']:
-            test_path = IMAGES_DIR / f"{team_name}{ext}"
-            if test_path.exists():
-                image_path = test_path
-                break
-        
-        if image_path and image_path.exists():
-            img = Image.open(image_path)
-            img = img.resize((200, 200))
-            return img
+        if logo_filename and pd.notna(logo_filename) and str(logo_filename).strip():
+            image_path = IMAGES_DIR / str(logo_filename)
+            if image_path.exists():
+                img = Image.open(image_path)
+                img = img.resize((200, 200))
+                return img
         return None
     except Exception as e:
-        st.warning(f"Could not load logo for {team_name}: {str(e)}")
+        st.warning(f"Could not load logo {logo_filename}: {str(e)}")
         return None
 
 def load_player_photo(photo_filename):
@@ -70,6 +64,17 @@ def load_player_photo(photo_filename):
     except Exception as e:
         return None
 
+def load_cpl_logo():
+    """Load CPL main logo from assets/images folder"""
+    try:
+        cpl_logo_path = IMAGES_DIR / "cpl.png"
+        if cpl_logo_path.exists():
+            img = Image.open(cpl_logo_path)
+            return img
+        return None
+    except Exception as e:
+        return None
+
 def initialize_teams_from_excel(teams_df, max_tokens, max_squad_size):
     """Initialize teams from Excel file"""
     teams = {}
@@ -77,7 +82,7 @@ def initialize_teams_from_excel(teams_df, max_tokens, max_squad_size):
         team_name = row['TeamName']
         teams[team_name] = {
             'id': row['TeamID'],
-            'logo': team_name,  # Use team name to find logo
+            'logo': row['LogoFile'],  # Store logo filename from Excel
             'tokens_left': max_tokens,
             'squad': [],
             'max_tokens': max_tokens,
@@ -279,7 +284,7 @@ with st.sidebar:
             
             with st.expander("👀 Preview Teams"):
                 teams_preview = pd.DataFrame([
-                    {'Team': name, 'ID': data['id']} 
+                    {'Team': name, 'ID': data['id'], 'Logo': data['logo']} 
                     for name, data in st.session_state.teams.items()
                 ])
                 st.dataframe(teams_preview)
@@ -310,9 +315,18 @@ with st.sidebar:
 
 # Main content
 if not st.session_state.auction_started:
-    st.title("🏏 CPL Company Auction")
+    # Display CPL Logo centered
+    cpl_logo = load_cpl_logo()
+    if cpl_logo:
+        col1, col2, col3 = st.columns([1, 2, 1])
+        with col2:
+            st.image(cpl_logo, use_column_width=True)
+    
+    # Welcome text
+    st.markdown("<h2 style='text-align: center;'>Welcome to the Digital Bidding</h2>", unsafe_allow_html=True)
+    
     st.markdown("""
-    ### Welcome to the CPL Auction Platform!
+    ### Setup Instructions:
     
     **Setup Instructions:**
     1. Configure max tokens and squad size in the sidebar
@@ -321,8 +335,8 @@ if not st.session_state.auction_started:
     
     **Data Structure:**
     - **Players Sheet**: PlayerID, Name, Role, BaseTokens, PhotoFileName (optional)
-    - **Teams Sheet**: TeamID, TeamName
-    - **Team logos**: Place in `assets/images/` with team name (e.g., `Team Red.png`)
+    - **Teams Sheet**: TeamID, TeamName, LogoFile
+    - **Team logos**: Place in `assets/images/` and reference in LogoFile column
     - **Player photos**: Place in `assets/images/` and reference in PhotoFileName column
     
     **Features:**
@@ -355,8 +369,8 @@ else:
                     team_data = st.session_state.teams[team_name]
                     
                     with cols[col_idx]:
-                        # Load and display logo
-                        logo_img = load_team_logo(team_name)
+                        # Load and display logo using filename from Excel
+                        logo_img = load_team_logo(team_data['logo'])
                         
                         if logo_img:
                             st.image(logo_img, width=100)
