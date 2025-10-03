@@ -37,18 +37,24 @@ ROLE_EMOJIS = {
     'All-rounder': '⚡'
 }
 
-def load_team_logo(logo_filename):
-    """Load team logo from assets/images folder using filename"""
+def load_team_logo(team_name):
+    """Load team logo from assets/images folder"""
     try:
-        if logo_filename and pd.notna(logo_filename) and str(logo_filename).strip():
-            image_path = IMAGES_DIR / str(logo_filename)
-            if image_path.exists():
-                img = Image.open(image_path)
-                img = img.resize((200, 200))
-                return img
+        # Try different image formats
+        image_path = None
+        for ext in ['.png', '.jpg', '.jpeg', '.PNG', '.JPG', '.JPEG']:
+            test_path = IMAGES_DIR / f"{team_name}{ext}"
+            if test_path.exists():
+                image_path = test_path
+                break
+        
+        if image_path and image_path.exists():
+            img = Image.open(image_path)
+            img = img.resize((200, 200))
+            return img
         return None
     except Exception as e:
-        st.warning(f"Could not load logo {logo_filename}: {str(e)}")
+        st.warning(f"Could not load logo for {team_name}: {str(e)}")
         return None
 
 def load_player_photo(photo_filename):
@@ -82,7 +88,7 @@ def initialize_teams_from_excel(teams_df, max_tokens, max_squad_size):
         team_name = row['TeamName']
         teams[team_name] = {
             'id': row['TeamID'],
-            'logo': row['LogoFile'],  # Store logo filename from Excel
+            'logo': team_name,  # Use team name to find logo
             'tokens_left': max_tokens,
             'squad': [],
             'max_tokens': max_tokens,
@@ -284,7 +290,7 @@ with st.sidebar:
             
             with st.expander("👀 Preview Teams"):
                 teams_preview = pd.DataFrame([
-                    {'Team': name, 'ID': data['id'], 'Logo': data['logo']} 
+                    {'Team': name, 'ID': data['id']} 
                     for name, data in st.session_state.teams.items()
                 ])
                 st.dataframe(teams_preview)
@@ -319,20 +325,25 @@ cpl_logo = load_cpl_logo()
 if cpl_logo:
     col1, col2, col3 = st.columns([1, 2, 1])
     with col2:
-        st.image(cpl_logo, use_container_width=True)
+        st.image(cpl_logo, width=400)
 
 if not st.session_state.auction_started:
-    # Welcome text
-    st.markdown("<h2 style='text-align: center;'>Welcome to the Digital Bidding</h2>", unsafe_allow_html=True)
-    
+    st.title("🏏 CPL Company Auction")
     st.markdown("""
-    ### Setup Instructions:
-
+    ### Welcome to the CPL Auction Platform!
+    
     **Setup Instructions:**
     1. Configure max tokens and squad size in the sidebar
     2. Click "Load CPL Data" to load data from `assets/Cpl_data.xlsx`
     3. Click "Start Auction" to begin
-
+    
+    **Features:**
+    - 🪙 Token-based bidding system
+    - 🖼️ Team logos and player photos
+    - 📊 Live team dashboards
+    - 🎯 Role-based squad management
+    - 📈 Real-time auction history
+    
     **Features:**
     - 🪙 Token-based bidding system
     - 🖼️ Team logos and player photos
@@ -363,8 +374,8 @@ else:
                     team_data = st.session_state.teams[team_name]
                     
                     with cols[col_idx]:
-                        # Load and display logo using filename from Excel
-                        logo_img = load_team_logo(team_data['logo'])
+                        # Load and display logo
+                        logo_img = load_team_logo(team_name)
                         
                         if logo_img:
                             st.image(logo_img, width=100)
