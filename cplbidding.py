@@ -328,7 +328,7 @@ if cpl_logo:
         st.image(cpl_logo, width=400)
 
 if not st.session_state.auction_started:
-    st.title("🏏 CPL Company Auction")
+    st.title("🏏 CPL Auction")
     st.markdown("""
     ### Welcome to the CPL Auction Platform!
     
@@ -336,13 +336,6 @@ if not st.session_state.auction_started:
     1. Configure max tokens and squad size in the sidebar
     2. Click "Load CPL Data" to load data from `assets/Cpl_data.xlsx`
     3. Click "Start Auction" to begin
-    
-    **Features:**
-    - 🪙 Token-based bidding system
-    - 🖼️ Team logos and player photos
-    - 📊 Live team dashboards
-    - 🎯 Role-based squad management
-    - 📈 Real-time auction history
     
     **Features:**
     - 🪙 Token-based bidding system
