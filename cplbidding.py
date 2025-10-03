@@ -314,31 +314,25 @@ with st.sidebar:
         st.progress(progress)
 
 # Main content
+# Display CPL Logo at the top throughout the app
+cpl_logo = load_cpl_logo()
+if cpl_logo:
+    col1, col2, col3 = st.columns([1, 2, 1])
+    with col2:
+        st.image(cpl_logo, use_container_width=True)
+
 if not st.session_state.auction_started:
-    # Display CPL Logo centered
-    cpl_logo = load_cpl_logo()
-    if cpl_logo:
-        col1, col2, col3 = st.columns([1, 2, 1])
-        with col2:
-            st.image(cpl_logo, use_column_width=True)
-    
     # Welcome text
     st.markdown("<h2 style='text-align: center;'>Welcome to the Digital Bidding</h2>", unsafe_allow_html=True)
     
     st.markdown("""
     ### Setup Instructions:
-    
+
     **Setup Instructions:**
     1. Configure max tokens and squad size in the sidebar
     2. Click "Load CPL Data" to load data from `assets/Cpl_data.xlsx`
     3. Click "Start Auction" to begin
-    
-    **Data Structure:**
-    - **Players Sheet**: PlayerID, Name, Role, BaseTokens, PhotoFileName (optional)
-    - **Teams Sheet**: TeamID, TeamName, LogoFile
-    - **Team logos**: Place in `assets/images/` and reference in LogoFile column
-    - **Player photos**: Place in `assets/images/` and reference in PhotoFileName column
-    
+
     **Features:**
     - 🪙 Token-based bidding system
     - 🖼️ Team logos and player photos
