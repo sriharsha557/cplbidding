@@ -14,6 +14,8 @@ BASE_DIR = Path(__file__).parent if "__file__" in globals() else Path.cwd()
 ASSETS_DIR = BASE_DIR / "assets"
 IMAGES_DIR = ASSETS_DIR / "images"
 EXCEL_PATH = ASSETS_DIR / "Cpl_data.xlsx"
+PLAYERS_CSV_PATH = ASSETS_DIR / "players.csv"
+TEAMS_CSV_PATH = ASSETS_DIR / "teams.csv"
 
 # Initialize session state
 if 'initialized' not in st.session_state:
