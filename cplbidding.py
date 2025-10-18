@@ -193,25 +193,59 @@ def load_data_from_excel():
         
         # Read all sheets
         xls = pd.ExcelFile(EXCEL_PATH)
+        st.info(f"📊 Found {len(xls.sheet_names)} sheet(s): {xls.sheet_names}")
         
         # Load Players sheet
         if 'Players' in xls.sheet_names:
             players_df = pd.read_excel(EXCEL_PATH, sheet_name='Players')
+            st.success(f"✅ Loaded Players sheet")
         else:
             # Try first sheet
             players_df = pd.read_excel(EXCEL_PATH, sheet_name=0)
+            st.warning(f"⚠️ Using first sheet '{xls.sheet_names[0]}' for Players")
         
         # Load Teams sheet
         if 'Teams' in xls.sheet_names:
             teams_df = pd.read_excel(EXCEL_PATH, sheet_name='Teams')
-        else:
-            # Try second sheet
+            st.success(f"✅ Loaded Teams sheet")
+        elif len(xls.sheet_names) > 1:
+            # Try second sheet if it exists
             teams_df = pd.read_excel(EXCEL_PATH, sheet_name=1)
+            st.warning(f"⚠️ Using second sheet '{xls.sheet_names[1]}' for Teams")
+        else:
+            # Only one sheet - return error
+            st.error("❌ Excel file must have at least 2 sheets (Players and Teams)")
+            st.info("""
+            **Required Excel Structure:**
+            - Sheet 1: 'Players' with columns: PlayerID, Name, Role, BaseTokens, PhotoFileName
+            - Sheet 2: 'Teams' with columns: TeamID, TeamName, LogoFile
+            """)
+            return None, None
+        
+        # Validate required columns
+        required_player_cols = ['PlayerID', 'Name', 'Role', 'BaseTokens']
+        required_team_cols = ['TeamID', 'TeamName', 'LogoFile']
+        
+        missing_player_cols = [col for col in required_player_cols if col not in players_df.columns]
+        missing_team_cols = [col for col in required_team_cols if col not in teams_df.columns]
+        
+        if missing_player_cols:
+            st.error(f"❌ Players sheet missing columns: {missing_player_cols}")
+            st.info(f"Found columns: {list(players_df.columns)}")
+            return None, None
+        
+        if missing_team_cols:
+            st.error(f"❌ Teams sheet missing columns: {missing_team_cols}")
+            st.info(f"Found columns: {list(teams_df.columns)}")
+            return None, None
         
         return players_df, teams_df
+        
     except Exception as e:
         st.error(f"Error loading Excel file: {str(e)}")
         st.info(f"Expected path: {EXCEL_PATH.absolute()}")
+        import traceback
+        st.code(traceback.format_exc())
         return None, None
 
 # Custom CSS
@@ -253,6 +287,48 @@ with st.sidebar:
         st.code(f"Excel Path: {EXCEL_PATH.absolute()}")
         st.code(f"Excel Exists: {EXCEL_PATH.exists()}")
         st.code(f"Images Dir Exists: {IMAGES_DIR.exists()}")
+    
+    # 🔍 DEBUG BUTTON - NEW CODE
+    if st.button("🔍 Debug Excel File"):
+        st.subheader("Excel File Debug Info")
+        
+        try:
+            # Check if file exists
+            st.write(f"**File exists:** {EXCEL_PATH.exists()}")
+            st.write(f"**File path:** {EXCEL_PATH.absolute()}")
+            
+            if EXCEL_PATH.exists():
+                # Get file size
+                file_size = EXCEL_PATH.stat().st_size
+                st.write(f"**File size:** {file_size} bytes ({file_size/1024:.2f} KB)")
+                
+                # Try to read Excel file
+                xls = pd.ExcelFile(EXCEL_PATH)
+                st.write(f"**Number of sheets:** {len(xls.sheet_names)}")
+                st.write(f"**Sheet names:** {xls.sheet_names}")
+                
+                # Show first few rows of each sheet
+                for sheet_name in xls.sheet_names:
+                    st.write(f"### Sheet: '{sheet_name}'")
+                    df = pd.read_excel(EXCEL_PATH, sheet_name=sheet_name)
+                    st.write(f"**Shape:** {df.shape}")
+                    st.write(f"**Columns:** {list(df.columns)}")
+                    st.dataframe(df.head(3))
+            else:
+                st.error("File not found!")
+                
+                # List files in assets directory
+                if ASSETS_DIR.exists():
+                    st.write("**Files in assets directory:**")
+                    for file in ASSETS_DIR.iterdir():
+                        st.write(f"- {file.name} ({file.stat().st_size} bytes)")
+                else:
+                    st.error(f"Assets directory doesn't exist: {ASSETS_DIR}")
+                    
+        except Exception as e:
+            st.error(f"Debug error: {str(e)}")
+            import traceback
+            st.code(traceback.format_exc())
     
     if not st.session_state.auction_started:
         st.subheader("1. Configure Auction")
