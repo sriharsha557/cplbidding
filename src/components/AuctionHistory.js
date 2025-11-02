@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { History, Download, Search, Filter } from 'lucide-react';
+import { History, Download, Search } from 'lucide-react';
 
 const AuctionHistory = ({ auctionHistory }) => {
   const [searchTerm, setSearchTerm] = useState('');

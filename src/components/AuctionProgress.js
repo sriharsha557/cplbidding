@@ -1,6 +1,6 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import { Trophy, Users, Clock, Target } from 'lucide-react';
+import { Trophy, Target } from 'lucide-react';
 import { getCurrentAuctionPhase, calculateAuctionProgress, ROLE_ORDER, ROLE_EMOJIS } from '../utils/auctionUtils';
 
 const AuctionProgress = ({ 
