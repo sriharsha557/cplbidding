@@ -1,0 +1,20 @@
+<svg width="200" height="200" viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background circle -->
+  <circle cx="100" cy="100" r="100" fill="#0d9488"/>
+  
+  <!-- Player silhouette -->
+  <circle cx="100" cy="70" r="20" fill="#ffffff" opacity="0.8"/>
+  <path d="M70 130c0-16.569 13.431-30 30-30s30 13.431 30 30v25H70v-25z" fill="#ffffff" opacity="0.8"/>
+  
+  <!-- Cricket bat -->
+  <rect x="85" y="120" width="4" height="25" fill="#8b4513" opacity="0.9"/>
+  <rect x="82" y="115" width="10" height="8" rx="2" fill="#deb887" opacity="0.9"/>
+  
+  <!-- Cricket ball -->
+  <circle cx="120" cy="135" r="4" fill="#ff6b6b" opacity="0.9"/>
+  <path d="M118 135 L122 135 M120 133 L120 137" stroke="#ffffff" stroke-width="0.5"/>
+  
+  <!-- CPL text -->
+  <text x="100" y="180" text-anchor="middle" fill="#ffffff" font-family="Arial, sans-serif" font-size="14" font-weight="bold">CPL</text>
+  <text x="100" y="195" text-anchor="middle" fill="#ffffff" font-family="Arial, sans-serif" font-size="10" opacity="0.8">Player</text>
+</svg>
