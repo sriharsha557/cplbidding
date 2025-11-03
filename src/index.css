@@ -15,11 +15,20 @@ body {
 
 .team-card {
   background: linear-gradient(135deg, #0f766e 0%, #134e4a 100%);
-  transition: transform 0.2s ease-in-out;
+  transition: all 0.3s ease-in-out;
+  position: relative;
 }
 
 .team-card:hover {
-  transform: translateY(-2px);
+  transform: translateY(-2px) scale(1.02);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+}
+
+/* Removed ::before pseudo-element as we're handling background in component */
+
+.team-card > div {
+  position: relative;
+  z-index: 2;
 }
 
 .player-card {
