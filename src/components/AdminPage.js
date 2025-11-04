@@ -11,6 +11,7 @@ import AuctionHistory from './AuctionHistory';
 import TeamDashboard from './TeamDashboard';
 import AuctionProgress from './AuctionProgress';
 import PlayerValuation from './PlayerValuation';
+import DataCleanup from './DataCleanup';
 
 import { ROLE_EMOJIS } from '../utils/auctionUtils';
 import { exportAuctionResults } from '../utils/excelExport';
@@ -225,6 +226,21 @@ const AdminPage = ({
                 <span className="hidden sm:inline">Player Valuation</span>
                 <span className="sm:hidden">Valuation</span>
               </motion.button>
+
+              <motion.button
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+                onClick={() => setActiveTab('cleanup')}
+                className={`flex items-center gap-2 px-3 md:px-4 py-2 rounded-lg transition-all shadow-md hover:shadow-lg ${
+                  activeTab === 'cleanup'
+                    ? 'bg-blue-600 text-white shadow-xl'
+                    : 'text-gray-600 hover:bg-white hover:text-gray-800 shadow-md'
+                }`}
+              >
+                <RotateCcw size={20} />
+                <span className="hidden sm:inline">Data Cleanup</span>
+                <span className="sm:hidden">Cleanup</span>
+              </motion.button>
               
               <div className="ml-auto flex items-center gap-2 md:gap-4">
                 <div className="text-gray-700 text-xs md:text-sm">
@@ -358,6 +374,59 @@ const AdminPage = ({
                       toast.success(`💰 Base price calculated: ${playerData.basePrice} tokens for ${playerData.name}`);
                     }}
                   />
+                </motion.div>
+              )}
+
+              {activeTab === 'cleanup' && (
+                <motion.div
+                  key="cleanup"
+                  initial={{ opacity: 0, x: -20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: 20 }}
+                  transition={{ duration: 0.3 }}
+                >
+                  <div className="space-y-6">
+                    <div>
+                      <h2 className="text-2xl font-bold text-gray-800 mb-4">Data Management</h2>
+                      <p className="text-gray-600 mb-6">
+                        Clean up sample data and prepare for your actual CPL player and team data.
+                      </p>
+                    </div>
+                    
+                    <DataCleanup 
+                      onDataCleared={() => {
+                        toast.success('✅ Data cleared successfully! Ready for your real data.');
+                        // Optionally refresh the auction state
+                        setAuctionState(prev => ({
+                          ...prev,
+                          players: [],
+                          teams: {},
+                          auctionHistory: [],
+                          unsoldPlayers: []
+                        }));
+                      }}
+                    />
+
+                    <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                      <h3 className="font-semibold text-blue-800 mb-2">📋 Next Steps After Cleanup:</h3>
+                      <ol className="text-sm text-blue-700 space-y-1 list-decimal list-inside">
+                        <li>Use the provided SQL scripts to insert your real team and player data</li>
+                        <li>Upload team logos and player photos to the assets/images folder</li>
+                        <li>Use the Player Valuation tool to set appropriate base prices</li>
+                        <li>Test the auction with a few players before the live event</li>
+                        <li>Configure team budgets and squad sizes as needed</li>
+                      </ol>
+                    </div>
+
+                    <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+                      <h3 className="font-semibold text-yellow-800 mb-2">📁 SQL Scripts Available:</h3>
+                      <ul className="text-sm text-yellow-700 space-y-1">
+                        <li><strong>supabase-cleanup-scripts.sql</strong> - Complete data management scripts</li>
+                        <li><strong>prepare-for-real-data.sql</strong> - Quick cleanup for real data</li>
+                        <li><strong>insert-real-data-template.sql</strong> - Template for your actual data</li>
+                      </ul>
+                    </div>
+                  </div>
                 </motion.div>
               )}
             </AnimatePresence>
