@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Settings, Home } from 'lucide-react';
 import { motion } from 'framer-motion';
-import Confetti from 'react-confetti';
 import toast from 'react-hot-toast';
 
 import HomePage from './components/HomePage';
@@ -12,8 +11,7 @@ import { NotificationProvider } from './components/NotificationSystem';
 import { auctionService } from './services/auctionService';
 import { supabaseAuctionService } from './services/supabaseService';
 
-import { sortPlayersByAuctionOrder, ROLE_EMOJIS, playSound } from './utils/auctionUtils';
-import { exportAuctionResults } from './utils/excelExport';
+import { sortPlayersByAuctionOrder, playSound } from './utils/auctionUtils';
 
 
 
@@ -299,15 +297,7 @@ function App() {
     }
   };
 
-  const handleExportResults = () => {
-    try {
-      const fileName = exportAuctionResults(auctionState.teams, auctionState.auctionHistory, auctionState.unsoldPlayers);
-      toast.success(`📊 Auction results exported as ${fileName}`);
-    } catch (error) {
-      console.error('Failed to export results:', error);
-      toast.error('Failed to export results');
-    }
-  };
+
 
   return (
     <NotificationProvider>
