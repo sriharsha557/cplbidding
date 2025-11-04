@@ -1,15 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { Target, History, Eye, RotateCcw, Download } from 'lucide-react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { Settings, Home } from 'lucide-react';
+import { motion } from 'framer-motion';
 import Confetti from 'react-confetti';
 import toast from 'react-hot-toast';
 
-import AuctionSetup from './components/AuctionSetup';
-import LiveAuction from './components/LiveAuction';
-import UnsoldPlayers from './components/UnsoldPlayers';
-import AuctionHistory from './components/AuctionHistory';
-import TeamDashboard from './components/TeamDashboard';
-import AuctionProgress from './components/AuctionProgress';
+import HomePage from './components/HomePage';
+import AdminPage from './components/AdminPage';
 import { NotificationProvider } from './components/NotificationSystem';
 
 
@@ -30,11 +26,11 @@ function App() {
     teams: {},
     auctionHistory: [],
     unsoldPlayers: [],
-    maxTokens: 1000,
+    maxTokens: 1200, // Updated to new budget
     maxSquadSize: 15
   });
 
-  const [activeTab, setActiveTab] = useState('auction');
+  const [currentView, setCurrentView] = useState('home'); // 'home' or 'admin'
   const [loading, setLoading] = useState(false);
   const [showConfetti, setShowConfetti] = useState(false);
   const [windowSize, setWindowSize] = useState({ width: window.innerWidth, height: window.innerHeight });
@@ -74,10 +70,10 @@ function App() {
           teamsWithBudgets[teamName] = {
             ...data.teams[teamName],
             categoryBudgets: {
-              'Batsman': { spent: 0, remaining: 400, min: 300, max: 400, minPlayers: 4, maxPlayers: 5 },
-              'Bowler': { spent: 0, remaining: 400, min: 300, max: 400, minPlayers: 4, maxPlayers: 5 },
-              'All-rounder': { spent: 0, remaining: 200, min: 150, max: 200, minPlayers: 3, maxPlayers: 4 },
-              'WicketKeeper': { spent: 0, remaining: 150, min: 100, max: 150, minPlayers: 2, maxPlayers: 3 }
+              'Batsman': { spent: 0, remaining: 420, min: 294, max: 420, minPlayers: 4, maxPlayers: 5 },
+              'Bowler': { spent: 0, remaining: 420, min: 294, max: 420, minPlayers: 4, maxPlayers: 5 },
+              'All-rounder': { spent: 0, remaining: 240, min: 168, max: 240, minPlayers: 3, maxPlayers: 4 },
+              'WicketKeeper': { spent: 0, remaining: 120, min: 84, max: 120, minPlayers: 2, maxPlayers: 3 }
             }
           };
         });
@@ -106,7 +102,6 @@ function App() {
 
   const startAuction = () => {
     setAuctionState(prev => ({ ...prev, auctionStarted: true }));
-    setActiveTab('auction');
     toast.success('🎯 Auction Started! Good luck to all teams!');
     playSound('auction-start');
   };
@@ -141,7 +136,7 @@ function App() {
           maxTokens: 1000,
           maxSquadSize: 15
         });
-        setActiveTab('auction');
+
         
         toast.success('🔄 Auction data reset successfully!', { id: resetToast });
       } else {
@@ -314,223 +309,81 @@ function App() {
     }
   };
 
-  const currentPlayer = auctionState.auctionStarted && auctionState.currentPlayerIdx < auctionState.players.length
-    ? auctionState.players[auctionState.currentPlayerIdx]
-    : null;
-
-  const isAuctionComplete = auctionState.currentPlayerIdx >= auctionState.players.length;
-  const totalSold = auctionState.auctionHistory.length;
-  const totalUnsold = auctionState.unsoldPlayers.length;
-
-
   return (
     <NotificationProvider>
-      <div className="min-h-screen bg-gradient-to-br from-teal-600 via-emerald-600 to-green-800">
-        {showConfetti && (
-          <Confetti
-            width={windowSize.width}
-            height={windowSize.height}
-            recycle={false}
-            numberOfPieces={200}
-          />
-        )}
-        
-        <div className="container mx-auto px-4 py-6 max-w-7xl">
-          {/* Header */}
-          <motion.div 
-            initial={{ opacity: 0, y: -20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="text-center mb-8"
-          >
-            <div className="flex justify-center mb-4">
-              <motion.img 
-                src="/assets/images/cpl.png" 
-                alt="CPL Logo" 
-                className="h-24 w-auto"
-                whileHover={{ scale: 1.05 }}
-                onError={(e) => {
-                  e.target.style.display = 'none';
-                }}
-              />
+      <div className="min-h-screen">
+        {/* Navigation Bar */}
+        <motion.div 
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="bg-white/95 backdrop-blur-sm shadow-lg border-b border-gray-200 sticky top-0 z-50"
+        >
+          <div className="container mx-auto px-4 py-3">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-4">
+                <motion.img 
+                  src="/assets/images/cpl.png" 
+                  alt="CPL Logo" 
+                  className="h-10 w-auto"
+                  whileHover={{ scale: 1.05 }}
+                  onError={(e) => {
+                    e.target.style.display = 'none';
+                  }}
+                />
+                <h1 className="text-xl font-bold text-gray-800">CPL Auction 2025</h1>
+              </div>
+              
+              <div className="flex items-center gap-2">
+                <motion.button
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                  onClick={() => setCurrentView('home')}
+                  className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-all ${
+                    currentView === 'home'
+                      ? 'bg-teal-600 text-white shadow-lg'
+                      : 'text-gray-600 hover:bg-gray-100'
+                  }`}
+                >
+                  <Home size={18} />
+                  <span className="hidden sm:inline">Public View</span>
+                </motion.button>
+                
+                <motion.button
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                  onClick={() => setCurrentView('admin')}
+                  className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-all ${
+                    currentView === 'admin'
+                      ? 'bg-slate-700 text-white shadow-lg'
+                      : 'text-gray-600 hover:bg-gray-100'
+                  }`}
+                >
+                  <Settings size={18} />
+                  <span className="hidden sm:inline">Admin Panel</span>
+                </motion.button>
+              </div>
             </div>
-            <h1 className="text-4xl md:text-5xl font-bold text-white mb-2">CPL Digital Auction</h1>
-            <p className="text-emerald-100 text-lg">Cricket Premier League Player Bidding System</p>
-          </motion.div>
+          </div>
+        </motion.div>
 
-        {!auctionState.auctionStarted ? (
-          <AuctionSetup
+        {/* Main Content */}
+        {currentView === 'home' ? (
+          <HomePage auctionState={auctionState} />
+        ) : (
+          <AdminPage 
             auctionState={auctionState}
             setAuctionState={setAuctionState}
             loadAuctionData={loadAuctionData}
             startAuction={startAuction}
+            resetAuction={resetAuction}
+            sellPlayer={sellPlayer}
+            markUnsold={markUnsold}
+            assignUnsoldPlayer={assignUnsoldPlayer}
             loading={loading}
+            showConfetti={showConfetti}
+            windowSize={windowSize}
           />
-        ) : (
-          <motion.div 
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="auction-container rounded-xl p-4 md:p-6 shadow-2xl"
-          >
-            {/* Navigation Tabs */}
-            <div className="flex flex-wrap gap-2 mb-6 bg-white/10 p-2 rounded-lg">
-              <motion.button
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
-                onClick={() => setActiveTab('auction')}
-                className={`flex items-center gap-2 px-3 md:px-4 py-2 rounded-lg transition-all shadow-md hover:shadow-lg ${
-                  activeTab === 'auction'
-                    ? 'bg-white text-teal-600 shadow-xl'
-                    : 'text-emerald-300 hover:bg-white/20 hover:text-white shadow-md'
-                }`}
-              >
-                <Target size={20} />
-                <span className="hidden sm:inline">Live Auction</span>
-                <span className="sm:hidden">Live</span>
-              </motion.button>
-              
-              <motion.button
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
-                onClick={() => setActiveTab('unsold')}
-                className={`flex items-center gap-2 px-3 md:px-4 py-2 rounded-lg transition-all shadow-md hover:shadow-lg ${
-                  activeTab === 'unsold'
-                    ? 'bg-white text-teal-600 shadow-xl'
-                    : 'text-emerald-300 hover:bg-white/20 hover:text-white shadow-md'
-                }`}
-              >
-                <Eye size={20} />
-                <span className="hidden sm:inline">Unsold Players</span>
-                <span className="sm:hidden">Unsold</span>
-                <span className="bg-red-500 text-white text-xs px-2 py-1 rounded-full">
-                  {auctionState.unsoldPlayers.length}
-                </span>
-              </motion.button>
-              
-              <motion.button
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
-                onClick={() => setActiveTab('history')}
-                className={`flex items-center gap-2 px-3 md:px-4 py-2 rounded-lg transition-all shadow-md hover:shadow-lg ${
-                  activeTab === 'history'
-                    ? 'bg-white text-teal-600 shadow-xl'
-                    : 'text-emerald-300 hover:bg-white/20 hover:text-white shadow-md'
-                }`}
-              >
-                <History size={20} />
-                <span className="hidden sm:inline">Auction History</span>
-                <span className="sm:hidden">History</span>
-              </motion.button>
-              
-              <div className="ml-auto flex items-center gap-2 md:gap-4">
-                <div className="text-white text-xs md:text-sm">
-                  <span className="font-semibold hidden md:inline">Progress:</span>
-                  <span className="md:hidden">📊</span> {totalSold + totalUnsold}/{auctionState.players.length}
-                </div>
-                
-                <motion.button
-                  whileHover={{ scale: 1.02 }}
-                  whileTap={{ scale: 0.98 }}
-                  onClick={handleExportResults}
-                  className="flex items-center gap-2 px-3 md:px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors shadow-md hover:shadow-lg"
-                >
-                  <Download size={16} />
-                  <span className="hidden md:inline">Export</span>
-                </motion.button>
-                
-                <motion.button
-                  whileHover={{ scale: 1.02 }}
-                  whileTap={{ scale: 0.98 }}
-                  onClick={resetAuction}
-                  className="flex items-center gap-2 px-3 md:px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors shadow-md hover:shadow-lg"
-                >
-                  <RotateCcw size={16} />
-                  <span className="hidden md:inline">Reset</span>
-                </motion.button>
-              </div>
-            </div>
-
-            {/* Tab Content */}
-            <AnimatePresence mode="wait">
-              {activeTab === 'auction' && (
-                <motion.div
-                  key="auction"
-                  initial={{ opacity: 0, x: -20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  exit={{ opacity: 0, x: 20 }}
-                  transition={{ duration: 0.3 }}
-                >
-                  {/* 1. Live Auction - First Priority */}
-                  <LiveAuction
-                    currentPlayer={currentPlayer}
-                    teams={auctionState.teams}
-                    isAuctionComplete={isAuctionComplete}
-                    sellPlayer={sellPlayer}
-                    markUnsold={markUnsold}
-                    auctionHistory={auctionState.auctionHistory}
-                    roleEmojis={ROLE_EMOJIS}
-                  />
-                  
-                  {/* 2. Team Dashboards - Second Priority */}
-                  <div className="mt-8">
-                    <TeamDashboard teams={auctionState.teams} />
-                  </div>
-                  
-                  {/* 3. Auction Progress - Third Priority */}
-                  <div className="mt-8">
-                    <AuctionProgress
-                      players={auctionState.players}
-                      currentPlayerIdx={auctionState.currentPlayerIdx}
-                      auctionHistory={auctionState.auctionHistory}
-                      unsoldPlayers={auctionState.unsoldPlayers}
-                      isComplete={isAuctionComplete}
-                    />
-                  </div>
-                </motion.div>
-              )}
-
-              {activeTab === 'unsold' && (
-                <motion.div
-                  key="unsold"
-                  initial={{ opacity: 0, x: -20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  exit={{ opacity: 0, x: 20 }}
-                  transition={{ duration: 0.3 }}
-                >
-                  <UnsoldPlayers
-                    unsoldPlayers={auctionState.unsoldPlayers}
-                    teams={auctionState.teams}
-                    isAuctionComplete={isAuctionComplete}
-                    assignUnsoldPlayer={assignUnsoldPlayer}
-                    roleEmojis={ROLE_EMOJIS}
-                  />
-                  
-                  {/* Team Dashboards for Unsold Tab */}
-                  <div className="mt-8">
-                    <TeamDashboard teams={auctionState.teams} />
-                  </div>
-                </motion.div>
-              )}
-
-              {activeTab === 'history' && (
-                <motion.div
-                  key="history"
-                  initial={{ opacity: 0, x: -20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  exit={{ opacity: 0, x: 20 }}
-                  transition={{ duration: 0.3 }}
-                >
-                  <AuctionHistory auctionHistory={auctionState.auctionHistory} />
-                  
-                  {/* Team Dashboards for History Tab */}
-                  <div className="mt-8">
-                    <TeamDashboard teams={auctionState.teams} />
-                  </div>
-                </motion.div>
-              )}
-            </AnimatePresence>
-          </motion.div>
         )}
-        </div>
       </div>
     </NotificationProvider>
   );

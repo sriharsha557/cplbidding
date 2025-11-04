@@ -2,9 +2,12 @@ import React, { useState } from 'react';
 import { Target, CheckCircle, SkipForward, Trophy, Download } from 'lucide-react';
 
 import AuctionTimer from './AuctionTimer';
+import CategoryProgress from './CategoryProgress';
 
 const LiveAuction = ({ 
   currentPlayer, 
+  players = [],
+  currentPlayerIdx = 0,
   teams, 
   isAuctionComplete, 
   sellPlayer, 
@@ -140,8 +143,18 @@ const LiveAuction = ({
     <div>
       <h2 className="text-2xl font-bold text-gray-800 mb-6 flex items-center gap-2">
         <Target size={24} />
-        Live Auction
+        Live Auction - Category-Based Bidding
       </h2>
+
+      {/* Category Progress Section */}
+      <div className="mb-8">
+        <CategoryProgress 
+          players={players}
+          currentPlayerIdx={currentPlayerIdx}
+          teams={teams}
+          auctionHistory={auctionHistory}
+        />
+      </div>
 
       <div className="grid lg:grid-cols-3 gap-6">
         {/* Current Player Card */}

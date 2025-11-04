@@ -31,13 +31,27 @@ if 'initialized' not in st.session_state:
     st.session_state.teams_file_path = None
     st.session_state.unsold_players = []
 
-# Role emojis
+# Role emojis and CPL Category Configuration
 ROLE_EMOJIS = {
     'Batsman': '🏏',
     'Bowler': '🎯',
     'WicketKeeper': '🧤',
     'All-rounder': '⚡'
 }
+
+# CPL Category-based bidding configuration - Optimized Distribution
+CPL_CATEGORY_BUDGETS = {
+    'Batsman': {'min': 294, 'max': 420, 'min_players': 4, 'max_players': 5, 'percentage': 35},
+    'Bowler': {'min': 294, 'max': 420, 'min_players': 4, 'max_players': 5, 'percentage': 35},
+    'All-rounder': {'min': 168, 'max': 240, 'min_players': 3, 'max_players': 4, 'percentage': 20},
+    'WicketKeeper': {'min': 84, 'max': 120, 'min_players': 2, 'max_players': 3, 'percentage': 10}
+}
+
+# Total team budget
+TOTAL_TEAM_BUDGET = 1200
+
+# Auction order by category
+ROLE_ORDER = ['Batsman', 'Bowler', 'All-rounder', 'WicketKeeper']
 
 def load_team_logo(logo_filename):
     """Load team logo from assets/images folder using filename"""
@@ -77,8 +91,53 @@ def load_cpl_logo():
     except Exception as e:
         return None
 
+def sort_players_by_category(players_df):
+    """Sort players by CPL category order (Batsmen first, then Bowlers, etc.)"""
+    # Create a copy to avoid modifying original
+    sorted_df = players_df.copy()
+    
+    # Create role order mapping
+    role_order_map = {role: i for i, role in enumerate(ROLE_ORDER)}
+    
+    # Add sort key column
+    sorted_df['role_order'] = sorted_df['Role'].map(role_order_map)
+    
+    # Sort by role order, then by base tokens (descending)
+    sorted_df = sorted_df.sort_values(['role_order', 'BaseTokens'], ascending=[True, False])
+    
+    # Remove the temporary column
+    sorted_df = sorted_df.drop('role_order', axis=1)
+    
+    return sorted_df
+
+def get_current_auction_phase(players_df, current_idx):
+    """Get current auction phase information"""
+    if current_idx >= len(players_df):
+        return None
+    
+    current_player = players_df.iloc[current_idx]
+    current_role = current_player['Role']
+    
+    # Count players in current category
+    players_in_category = len(players_df[players_df['Role'] == current_role])
+    current_player_in_category = len(players_df.iloc[:current_idx + 1][players_df.iloc[:current_idx + 1]['Role'] == current_role])
+    
+    return {
+        'role': current_role,
+        'emoji': ROLE_EMOJIS[current_role],
+        'phase': ROLE_ORDER.index(current_role) + 1,
+        'total_phases': len(ROLE_ORDER),
+        'phase_name': f"{current_role}s Auction",
+        'category_progress': {
+            'current': current_player_in_category,
+            'total': players_in_category,
+            'percentage': (current_player_in_category / players_in_category) * 100
+        },
+        'budget': CPL_CATEGORY_BUDGETS[current_role]
+    }
+
 def initialize_teams_from_excel(teams_df, max_tokens, max_squad_size):
-    """Initialize teams from Excel file"""
+    """Initialize teams from Excel file with CPL category budgets"""
     teams = {}
     for _, row in teams_df.iterrows():
         team_name = row['TeamName']
@@ -89,13 +148,30 @@ def initialize_teams_from_excel(teams_df, max_tokens, max_squad_size):
             'squad': [],
             'max_tokens': max_tokens,
             'max_squad_size': max_squad_size,
-            'role_count': {'Batsman': 0, 'Bowler': 0, 'WicketKeeper': 0, 'All-rounder': 0}
+            'role_count': {'Batsman': 0, 'Bowler': 0, 'WicketKeeper': 0, 'All-rounder': 0},
+            'category_budgets': {
+                'Batsman': {'spent': 0, 'remaining': 420},
+                'Bowler': {'spent': 0, 'remaining': 420},
+                'All-rounder': {'spent': 0, 'remaining': 240},
+                'WicketKeeper': {'spent': 0, 'remaining': 120}
+            }
         }
     return teams
 
 def can_afford_player(team, bid_price):
     """Check if team can afford the player"""
     return team['tokens_left'] >= bid_price
+
+def can_afford_category(team, player_role, bid_price):
+    """Check if team can afford the player within category budget"""
+    if 'category_budgets' not in team:
+        return True
+    return team['category_budgets'][player_role]['remaining'] >= bid_price
+
+def has_role_space(team, player_role):
+    """Check if team has space for this role"""
+    max_players = CPL_CATEGORY_BUDGETS[player_role]['max_players']
+    return team['role_count'][player_role] < max_players
 
 def is_squad_full(team):
     """Check if team has reached max squad size"""
@@ -110,6 +186,10 @@ def add_player_to_team(team_name, player_data, bid_price):
         return False, "Insufficient tokens!"
     if is_squad_full(team):
         return False, "Squad is full!"
+    if not can_afford_category(team, player_data['Role'], bid_price):
+        return False, f"Insufficient {player_data['Role']} category budget!"
+    if not has_role_space(team, player_data['Role']):
+        return False, f"Maximum {player_data['Role']} players reached!"
     
     # Add player
     player_info = {
@@ -123,6 +203,11 @@ def add_player_to_team(team_name, player_data, bid_price):
     team['squad'].append(player_info)
     team['tokens_left'] -= bid_price
     team['role_count'][player_data['Role']] += 1
+    
+    # Update category budget
+    if 'category_budgets' in team:
+        team['category_budgets'][player_data['Role']]['spent'] += bid_price
+        team['category_budgets'][player_data['Role']]['remaining'] -= bid_price
     
     # Add to history
     st.session_state.auction_history.append({
@@ -205,6 +290,9 @@ def load_data_from_excel():
             # Try first sheet
             players_df = pd.read_excel(EXCEL_PATH, sheet_name=0)
             st.warning(f"⚠️ Using first sheet '{xls.sheet_names[0]}' for Players")
+        
+        # Sort players by category for CPL auction order
+        players_df = sort_players_by_category(players_df)
         
         # Load Teams sheet
         if 'Teams' in xls.sheet_names:
@@ -334,7 +422,7 @@ with st.sidebar:
     
     if not st.session_state.auction_started:
         st.subheader("1. Configure Auction")
-        st.session_state.max_tokens = st.number_input("Max Tokens per Team", 500, 5000, 1000, 100)
+        st.session_state.max_tokens = st.number_input("Max Tokens per Team", 500, 5000, TOTAL_TEAM_BUDGET, 100)
         st.session_state.max_squad_size = st.number_input("Max Squad Size", 10, 25, 15, 1)
         
         st.subheader("2. Load Data")
@@ -390,6 +478,20 @@ with st.sidebar:
         
         progress = (len(st.session_state.auction_history) + len(st.session_state.unsold_players)) / len(st.session_state.players_df)
         st.progress(progress)
+        
+        st.divider()
+        
+        # Category Overview
+        st.subheader("📊 Category Overview")
+        for role in ROLE_ORDER:
+            role_players = st.session_state.players_df[st.session_state.players_df['Role'] == role]
+            sold_in_role = len([h for h in st.session_state.auction_history if h['Role'] == role])
+            unsold_in_role = len([u for u in st.session_state.unsold_players if u['Role'] == role])
+            
+            st.write(f"{ROLE_EMOJIS[role]} **{role}**: {sold_in_role + unsold_in_role}/{len(role_players)} processed")
+            if len(role_players) > 0:
+                role_progress = (sold_in_role + unsold_in_role) / len(role_players)
+                st.progress(role_progress)
 
 # Main content
 # Display CPL Logo at the top throughout the app
@@ -463,8 +565,28 @@ else:
                             st.caption(f"**Squad:** {breakdown}")
                         else:
                             st.caption("No players yet")
+                        
+                        # Category budgets
+                        if 'category_budgets' in team_data:
+                            st.caption("**Category Budgets:**")
+                            for role in ROLE_ORDER:
+                                budget = team_data['category_budgets'][role]
+                                st.caption(f"{ROLE_EMOJIS[role]} {budget['remaining']} tokens left")
         
         st.divider()
+        
+        # Current Auction Phase
+        if st.session_state.current_player_idx < len(st.session_state.players_df):
+            current_phase = get_current_auction_phase(st.session_state.players_df, st.session_state.current_player_idx)
+            
+            if current_phase:
+                st.markdown(f"""
+                <div style='background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 20px; border-radius: 15px; color: white; text-align: center; margin-bottom: 20px;'>
+                    <h2 style='margin: 0; font-size: 28px;'>{current_phase['emoji']} {current_phase['phase_name']}</h2>
+                    <p style='margin: 10px 0; font-size: 16px;'>Phase {current_phase['phase']}/{current_phase['total_phases']} | Progress: {current_phase['category_progress']['current']}/{current_phase['category_progress']['total']} players ({current_phase['category_progress']['percentage']:.1f}%)</p>
+                    <p style='margin: 5px 0; font-size: 14px; opacity: 0.9;'>Budget Range: {current_phase['budget']['min']}-{current_phase['budget']['max']} tokens | Players Needed: {current_phase['budget']['min_players']}-{current_phase['budget']['max_players']}</p>
+                </div>
+                """, unsafe_allow_html=True)
         
         # Current Player
         if st.session_state.current_player_idx < len(st.session_state.players_df):
@@ -513,6 +635,8 @@ else:
                     team = st.session_state.teams[selected_team]
                     can_afford = can_afford_player(team, bid_price)
                     squad_full = is_squad_full(team)
+                    can_afford_cat = can_afford_category(team, player['Role'], bid_price)
+                    has_space = has_role_space(team, player['Role'])
                     
                     col_a, col_b = st.columns(2)
                     with col_a:
@@ -526,6 +650,26 @@ else:
                             st.success(f"✅ Squad space ({len(team['squad'])}/{team['max_squad_size']})")
                         else:
                             st.error(f"❌ Squad full ({len(team['squad'])}/{team['max_squad_size']})")
+                    
+                    # Category budget check
+                    col_c, col_d = st.columns(2)
+                    with col_c:
+                        if can_afford_cat:
+                            remaining = team['category_budgets'][player['Role']]['remaining']
+                            st.success(f"✅ {player['Role']} budget ({remaining} tokens)")
+                        else:
+                            remaining = team['category_budgets'][player['Role']]['remaining']
+                            st.error(f"❌ {player['Role']} budget ({remaining} tokens)")
+                    
+                    with col_d:
+                        if has_space:
+                            current = team['role_count'][player['Role']]
+                            max_players = CPL_CATEGORY_BUDGETS[player['Role']]['max_players']
+                            st.success(f"✅ {player['Role']} space ({current}/{max_players})")
+                        else:
+                            current = team['role_count'][player['Role']]
+                            max_players = CPL_CATEGORY_BUDGETS[player['Role']]['max_players']
+                            st.error(f"❌ {player['Role']} full ({current}/{max_players})")
                 
                 col_btn1, col_btn2 = st.columns([1, 1])
                 
