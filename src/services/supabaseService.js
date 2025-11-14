@@ -84,6 +84,8 @@ class SupabaseAuctionService {
   // Update player when sold
   async sellPlayer(playerId, teamName, bidPrice, playerRole) {
     try {
+      console.log('Selling player:', { playerId, teamName, bidPrice, playerRole });
+      
       // Update player
       const { error: playerError } = await supabase
         .from('players')
@@ -94,19 +96,32 @@ class SupabaseAuctionService {
         })
         .eq('player_id', playerId);
 
-      if (playerError) throw playerError;
+      if (playerError) {
+        console.error('Player update error:', playerError);
+        throw playerError;
+      }
+      console.log('Player updated successfully');
 
       // Update team budget
-      const roleKey = playerRole.toLowerCase() === 'wicketkeeper' ? 'wicketkeeper' : playerRole.toLowerCase();
+      const roleKey = playerRole.toLowerCase().replace('-', '');
       const budgetSpentField = `${roleKey}_budget_spent`;
       const budgetRemainingField = `${roleKey}_budget_remaining`;
       const countField = `${roleKey}_count`;
       
-      const { data: team } = await supabase
+      console.log('Fetching team data:', { teamName, roleKey, budgetSpentField });
+      
+      const { data: team, error: teamFetchError } = await supabase
         .from('teams')
         .select(`tokens_left, ${budgetSpentField}, ${budgetRemainingField}, ${countField}`)
         .eq('team_name', teamName)
         .single();
+
+      if (teamFetchError) {
+        console.error('Team fetch error:', teamFetchError);
+        throw teamFetchError;
+      }
+
+      console.log('Team data fetched:', team);
 
       if (team) {
         const { error: teamError } = await supabase
@@ -119,7 +134,11 @@ class SupabaseAuctionService {
           })
           .eq('team_name', teamName);
 
-        if (teamError) throw teamError;
+        if (teamError) {
+          console.error('Team update error:', teamError);
+          throw teamError;
+        }
+        console.log('Team updated successfully');
       }
 
       return { success: true };

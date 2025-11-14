@@ -164,7 +164,7 @@ const LiveAuction = ({
           <div className="player-card rounded-xl p-6 text-white shadow-lg">
             <div className="text-center mb-4">
               <img
-                src={currentPlayer.PhotoFileName ? `/assets/images/${currentPlayer.PhotoFileName}` : '/placeholder-player.svg'}
+                src={currentPlayer.PhotoFileName ? `/players/${currentPlayer.PhotoFileName}` : '/placeholder-player.svg'}
                 alt={currentPlayer.Name}
                 className="w-32 h-32 mx-auto mb-4 rounded-full object-cover border-4 border-white/30 bg-white/20"
                 onError={(e) => {

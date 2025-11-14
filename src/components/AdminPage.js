@@ -132,7 +132,7 @@ const AdminPage = ({
         >
           <div className="flex justify-center mb-4">
             <motion.img 
-              src="/assets/images/cpl.png" 
+              src="/cpl.png" 
               alt="CPL Logo" 
               className="h-24 w-auto"
               whileHover={{ scale: 1.05 }}

@@ -312,7 +312,7 @@ function App() {
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-4">
                 <motion.img 
-                  src="/assets/images/cpl.png" 
+                  src="/cpl.png" 
                   alt="CPL Logo" 
                   className="h-10 w-auto"
                   whileHover={{ scale: 1.05 }}

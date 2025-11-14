@@ -210,7 +210,7 @@ const UnsoldPlayers = ({
               <div key={idx} className="unsold-card rounded-lg p-4 text-white shadow-lg">
                 <div className="text-center">
                   <img
-                    src={player.PhotoFileName ? `/assets/images/${player.PhotoFileName}` : '/placeholder-player.svg'}
+                    src={player.PhotoFileName ? `/players/${player.PhotoFileName}` : '/placeholder-player.svg'}
                     alt={player.Name}
                     className="w-20 h-20 mx-auto mb-3 rounded-full object-cover border-2 border-white/30 bg-white/20"
                     onError={(e) => {

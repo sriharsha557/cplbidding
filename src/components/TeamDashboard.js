@@ -17,7 +17,7 @@ const TeamDashboard = ({ teams }) => {
       console.log('Team logos:', teamEntries.map(([name, data]) => ({ 
         team: name, 
         logo: data.logo,
-        logoPath: data.logo ? `/assets/images/${data.logo}` : 'No logo'
+        logoPath: data.logo ? `/${data.logo}` : 'No logo'
       })));
     }
   }, [teamEntries]);
@@ -47,7 +47,7 @@ const TeamDashboard = ({ teams }) => {
               <div 
                 className="absolute inset-0 rounded-lg"
                 style={{
-                  backgroundImage: `url(/assets/images/${teamData.logo})`,
+                  backgroundImage: `url(/${teamData.logo})`,
                   backgroundSize: '150px 150px',
                   backgroundRepeat: 'no-repeat',
                   backgroundPosition: 'center center',
@@ -65,7 +65,7 @@ const TeamDashboard = ({ teams }) => {
                   {teamData.logo ? (
                     <div className="relative group">
                       <img
-                        src={`/assets/images/${teamData.logo}`}
+                        src={`/${teamData.logo}`}
                         alt={`${teamName} logo`}
                         className="w-8 h-8 rounded-full object-cover opacity-90 border border-white/30 cursor-pointer transition-all duration-300 group-hover:scale-150 group-hover:z-50 group-hover:shadow-2xl group-hover:border-white/60"
                         onError={(e) => {

@@ -144,7 +144,7 @@ const HomePage = ({ auctionState }) => {
           {/* CPL Logo - Secondary */}
           <div className="flex justify-center mb-4">
             <motion.img 
-              src="/assets/images/cpl.png" 
+              src="/cpl.png" 
               alt="CPL Logo" 
               className="h-14 w-auto"
               whileHover={{ scale: 1.05 }}
@@ -279,7 +279,7 @@ const HomePage = ({ auctionState }) => {
                   <div className="grid lg:grid-cols-2 gap-6">
                     <div className="text-center">
                       <img
-                        src={currentPlayer.PhotoFileName ? `/assets/images/${currentPlayer.PhotoFileName}` : '/placeholder-player.svg'}
+                        src={currentPlayer.PhotoFileName ? `/players/${currentPlayer.PhotoFileName}` : '/placeholder-player.svg'}
                         alt={currentPlayer.Name}
                         className="w-48 h-48 mx-auto mb-4 rounded-full object-cover border-4 border-teal-200 bg-gray-100"
                         onError={(e) => {
