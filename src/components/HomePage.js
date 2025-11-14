@@ -53,7 +53,7 @@ const HomePage = ({ auctionState }) => {
             className="mb-8"
           >
             <img 
-              src="/assets/images/Colruyt_Group.png" 
+              src="/Colruyt_Group.png" 
               alt="Colruyt Group" 
               className="h-24 md:h-32 w-auto mx-auto mb-4"
               onError={(e) => {
@@ -129,7 +129,7 @@ const HomePage = ({ auctionState }) => {
           {/* Colruyt Group Logo - Prominent Display */}
           <div className="flex justify-center mb-6">
             <motion.img 
-              src="/assets/images/Colruyt_Group.png" 
+              src="/Colruyt_Group.png" 
               alt="Colruyt Group" 
               className="h-20 md:h-24 w-auto"
               whileHover={{ scale: 1.05 }}
