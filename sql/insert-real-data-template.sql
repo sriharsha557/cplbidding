@@ -22,6 +22,15 @@ INSERT INTO teams (team_id, team_name, logo_file, tokens_left, max_tokens, max_s
 -- Replace with your actual player data
 -- Use the Player Valuation Framework to set appropriate base_tokens
 
+-- =====================================================
+-- IMPORTANT: Role Constraint Values
+-- =====================================================
+-- The role column has a CHECK constraint. Use EXACTLY these values:
+-- 'Batsman' (not 'batsman' or 'Batsmen')
+-- 'Bowler' (not 'bowler' or 'Bowlers') 
+-- 'All-rounder' (note the hyphen, not 'All-Rounder' or 'AllRounder')
+-- 'WicketKeeper' (CamelCase, not 'Wicket Keeper' or 'wicketkeeper')
+
 -- BATSMEN (Recommended base tokens: 15-70)
 INSERT INTO players (player_id, name, role, base_tokens, photo_filename, department, status) VALUES
 -- Star Batsmen (50-70 tokens)
@@ -51,6 +60,7 @@ INSERT INTO players (player_id, name, role, base_tokens, photo_filename, departm
 ('CPL_P012', 'Your Average Bowler 2', 'Bowler', 15, 'bowler6.jpg', 'Bowling', 'Available');
 
 -- ALL-ROUNDERS (Recommended base tokens: 20-80)
+-- CRITICAL: Use 'All-rounder' with hyphen, not 'All-Rounder' or 'AllRounder'
 INSERT INTO players (player_id, name, role, base_tokens, photo_filename, department, status) VALUES
 -- Premium All-rounders (60-80 tokens)
 ('CPL_P013', 'Your Premium All-rounder 1', 'All-rounder', 75, 'allrounder1.jpg', 'All-rounder', 'Available'),

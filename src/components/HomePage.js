@@ -45,6 +45,24 @@ const HomePage = ({ auctionState }) => {
           animate={{ opacity: 1, scale: 1 }}
           className="text-center text-white p-8"
         >
+          {/* Colruyt Group Logo - Prominent on Landing */}
+          <motion.div
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.2 }}
+            className="mb-8"
+          >
+            <img 
+              src="/assets/images/Colruyt_Group.png" 
+              alt="Colruyt Group" 
+              className="h-24 md:h-32 w-auto mx-auto mb-4"
+              onError={(e) => {
+                console.error('Colruyt Group logo not found');
+                e.target.style.display = 'none';
+              }}
+            />
+          </motion.div>
+
           <motion.div
             animate={{ rotate: 360 }}
             transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
@@ -108,17 +126,34 @@ const HomePage = ({ auctionState }) => {
           animate={{ opacity: 1, y: 0 }}
           className="text-center mb-6"
         >
+          {/* Colruyt Group Logo - Prominent Display */}
+          <div className="flex justify-center mb-6">
+            <motion.img 
+              src="/assets/images/Colruyt_Group.png" 
+              alt="Colruyt Group" 
+              className="h-20 md:h-24 w-auto"
+              whileHover={{ scale: 1.05 }}
+              transition={{ duration: 0.3 }}
+              onError={(e) => {
+                console.error('Colruyt Group logo not found');
+                e.target.style.display = 'none';
+              }}
+            />
+          </div>
+
+          {/* CPL Logo - Secondary */}
           <div className="flex justify-center mb-4">
             <motion.img 
               src="/assets/images/cpl.png" 
               alt="CPL Logo" 
-              className="h-16 w-auto"
+              className="h-14 w-auto"
               whileHover={{ scale: 1.05 }}
               onError={(e) => {
                 e.target.style.display = 'none';
               }}
             />
           </div>
+
           <h1 className="text-3xl md:text-4xl font-bold text-white mb-2">CPL Live Auction</h1>
           <div className="text-emerald-100 text-sm">
             {currentTime.toLocaleString()} | Live Updates
