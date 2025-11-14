@@ -281,7 +281,7 @@ const HomePage = ({ auctionState }) => {
                       <img
                         src={currentPlayer.PhotoFileName ? `/players/${currentPlayer.PhotoFileName}` : '/placeholder-player.svg'}
                         alt={currentPlayer.Name}
-                        className="w-48 h-48 mx-auto mb-4 rounded-full object-cover border-4 border-teal-200 bg-gray-100"
+                        className="w-48 h-64 mx-auto mb-4 rounded-lg object-cover border-4 border-teal-200 bg-gray-100 shadow-lg"
                         onError={(e) => {
                           e.target.src = '/placeholder-player.svg';
                         }}

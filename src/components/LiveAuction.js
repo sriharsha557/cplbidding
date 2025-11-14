@@ -166,7 +166,7 @@ const LiveAuction = ({
               <img
                 src={currentPlayer.PhotoFileName ? `/players/${currentPlayer.PhotoFileName}` : '/placeholder-player.svg'}
                 alt={currentPlayer.Name}
-                className="w-32 h-32 mx-auto mb-4 rounded-full object-cover border-4 border-white/30 bg-white/20"
+                className="w-40 h-56 mx-auto mb-4 rounded-lg object-cover border-4 border-white/30 bg-white/20 shadow-lg"
                 onError={(e) => {
                   e.target.src = '/placeholder-player.svg';
                 }}
