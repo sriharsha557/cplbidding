@@ -254,7 +254,13 @@ function App() {
     const player = auctionState.unsoldPlayers[playerIdx];
     
     try {
-      await auctionService.sellPlayer(player.PlayerID, teamName, price);
+      // Try Supabase first, fallback to Excel service
+      try {
+        await supabaseAuctionService.sellPlayer(player.PlayerID, teamName, price, player.Role);
+      } catch (supabaseError) {
+        console.warn('Supabase failed for unsold player, using Excel service:', supabaseError);
+        await auctionService.sellPlayer(player.PlayerID, teamName, price, player.Role);
+      }
       
       // Update teams and remove from unsold
       const updatedTeams = { ...auctionState.teams };
