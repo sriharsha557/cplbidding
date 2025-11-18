@@ -52,10 +52,10 @@ class SupabaseAuctionService {
             'All-rounder': 0
           },
           categoryBudgets: {
-            'Batsman': { spent: team.batsman_budget_spent || 0, remaining: team.batsman_budget_remaining || 400, min: 300, max: 400, minPlayers: 4, maxPlayers: 5 },
-            'Bowler': { spent: team.bowler_budget_spent || 0, remaining: team.bowler_budget_remaining || 400, min: 300, max: 400, minPlayers: 4, maxPlayers: 5 },
-            'All-rounder': { spent: team.allrounder_budget_spent || 0, remaining: team.allrounder_budget_remaining || 200, min: 150, max: 200, minPlayers: 3, maxPlayers: 4 },
-            'WicketKeeper': { spent: team.wicketkeeper_budget_spent || 0, remaining: team.wicketkeeper_budget_remaining || 150, min: 100, max: 150, minPlayers: 2, maxPlayers: 3 }
+            'Batsman': { spent: team.batsman_budget_spent || 0, remaining: team.batsman_budget_remaining || 350, min: 250, max: 350, minPlayers: 3, maxPlayers: 4 },
+            'Bowler': { spent: team.bowler_budget_spent || 0, remaining: team.bowler_budget_remaining || 300, min: 200, max: 300, minPlayers: 2, maxPlayers: 3 },
+            'All-rounder': { spent: team.allrounder_budget_spent || 0, remaining: team.allrounder_budget_remaining || 350, min: 200, max: 350, minPlayers: 3, maxPlayers: 5 },
+            'WicketKeeper': { spent: team.wicketkeeper_budget_spent || 0, remaining: team.wicketkeeper_budget_remaining || 200, min: 100, max: 200, minPlayers: 1, maxPlayers: 2 }
           }
         };
       });
@@ -189,13 +189,13 @@ class SupabaseAuctionService {
           team_id: team.TeamID,
           team_name: team.TeamName,
           logo_file: team.LogoFile || null,
-          max_tokens: 1000,
-          max_squad_size: 15,
-          tokens_left: 1000,
-          batsman_budget_remaining: 400,
-          bowler_budget_remaining: 400,
-          allrounder_budget_remaining: 200,
-          wicketkeeper_budget_remaining: 150
+          max_tokens: 1200,
+          max_squad_size: 16,
+          tokens_left: 1200,
+          batsman_budget_remaining: 350,
+          bowler_budget_remaining: 300,
+          allrounder_budget_remaining: 350,
+          wicketkeeper_budget_remaining: 200
         })));
 
       if (teamsError) {
@@ -251,14 +251,14 @@ class SupabaseAuctionService {
           team_id: team.TeamID,
           team_name: team.TeamName,
           logo_file: team.LogoFile || null,
-          max_tokens: 1000,
-          max_squad_size: 15,
+          max_tokens: 1200,
+          max_squad_size: 16,
           // Only set initial values if not already set
-          tokens_left: 1000,
-          batsman_budget_remaining: 400,
-          bowler_budget_remaining: 400,
-          allrounder_budget_remaining: 200,
-          wicketkeeper_budget_remaining: 150
+          tokens_left: 1200,
+          batsman_budget_remaining: 350,
+          bowler_budget_remaining: 300,
+          allrounder_budget_remaining: 350,
+          wicketkeeper_budget_remaining: 200
         })), {
           onConflict: 'team_id',
           ignoreDuplicates: false
@@ -321,7 +321,8 @@ class SupabaseAuctionService {
 
       if (historyError) throw historyError;
 
-      // 2. Reset all players to Available status
+      // 2. Reset players to Available status (EXCEPT captains and vice-captains)
+      // Captains and vice-captains remain pre-assigned to their teams
       const { error: playersError } = await supabase
         .from('players')
         .update({
@@ -329,23 +330,28 @@ class SupabaseAuctionService {
           sold_to: null,
           sold_price: 0
         })
-        .neq('id', 0);
+        .eq('is_captain', false)
+        .eq('is_vice_captain', false);
 
       if (playersError) throw playersError;
+      
+      console.log('Players reset (captains/vice-captains preserved)');
 
-      // 3. Reset all team budgets and counts
+      // 3. Reset team budgets and counts
+      // Note: This resets to initial values. Captain/vice-captain costs will be
+      // recalculated when data is loaded from the database
       const { error: teamsError } = await supabase
         .from('teams')
         .update({
-          tokens_left: 1000,
+          tokens_left: 1200,
           batsman_budget_spent: 0,
-          batsman_budget_remaining: 400,
+          batsman_budget_remaining: 350,
           bowler_budget_spent: 0,
-          bowler_budget_remaining: 400,
+          bowler_budget_remaining: 300,
           allrounder_budget_spent: 0,
-          allrounder_budget_remaining: 200,
+          allrounder_budget_remaining: 350,
           wicketkeeper_budget_spent: 0,
-          wicketkeeper_budget_remaining: 150,
+          wicketkeeper_budget_remaining: 200,
           batsman_count: 0,
           bowler_count: 0,
           allrounder_count: 0,
@@ -354,6 +360,8 @@ class SupabaseAuctionService {
         .neq('id', 0);
 
       if (teamsError) throw teamsError;
+      
+      console.log('Team budgets reset to initial values');
 
       // 4. Reset auction state
       const { error: stateError } = await supabase
