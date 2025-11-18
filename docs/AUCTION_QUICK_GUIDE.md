@@ -5,21 +5,21 @@
 | Item | Value |
 |------|-------|
 | **Total Teams** | 8 |
-| **Squad Size** | 15 players (2 pre-assigned + 13 from auction) |
+| **Squad Size** | 11-16 players (2 pre-assigned + 9-14 from auction) |
 | **Total Budget** | 1,200 tokens per team |
-| **Players in Auction** | 101 players |
+| **Players in Auction** | 99 players (31 batsmen, 33 all-rounders, 21 bowlers ⚠️, 14 WKs ⚠️) |
 | **Auction Phases** | 4 (one per role) |
 
 ---
 
 ## 💰 Budget Breakdown
 
-| Role | Budget Range | Players Required |
-|------|-------------|------------------|
-| 🏏 **Batsman** | 300-400 tokens | 4-5 players |
-| ⚾ **Bowler** | 300-400 tokens | 4-5 players |
-| ⭐ **All-rounder** | 150-200 tokens | 3-4 players |
-| 🧤 **WicketKeeper** | 100-150 tokens | 2-3 players |
+| Role | Budget Range | Players Required | Supply |
+|------|-------------|------------------|--------|
+| 🏏 **Batsmen** | 250-350 tokens | 3-4 players | 31 ✅ |
+| ⭐ **All-rounders** | 200-350 tokens | 3-5 players | 33 ✅ |
+| ⚾ **Bowlers** | 200-300 tokens | 2-3 players | 21 ⚠️ |
+| 🧤 **WicketKeepers** | 100-200 tokens | 1-2 players | 14 ⚠️ |
 
 ---
 
@@ -28,13 +28,13 @@
 ```
 START
   ↓
-Phase 1: Batsmen (🏏)
+Phase 1: Batsmen (🏏) - 31 available
   ↓
-Phase 2: Bowlers (⚾)
+Phase 2: All-rounders (⭐) - 33 available
   ↓
-Phase 3: All-rounders (⭐)
+Phase 3: Bowlers (⚾) - 21 available ⚠️ LIMITED!
   ↓
-Phase 4: WicketKeepers (🧤)
+Phase 4: WicketKeepers (🧤) - 14 available ⚠️ LIMITED!
   ↓
 END
 ```
@@ -74,19 +74,27 @@ END
 
 ## 📊 Example Budget Plan
 
-**Conservative Strategy:**
-- Batsmen: 350 tokens (5 players, avg 70 each)
-- Bowlers: 350 tokens (5 players, avg 70 each)
-- All-rounders: 180 tokens (4 players, avg 45 each)
-- WicketKeepers: 120 tokens (3 players, avg 40 each)
+**Balanced Strategy:**
+- Batsmen: 300 tokens (4 players, avg 75 each)
+- All-rounders: 300 tokens (4 players, avg 75 each)
+- Bowlers: 250 tokens (3 players, avg 83 each) ⚠️
+- WicketKeepers: 150 tokens (2 players, avg 75 each) ⚠️
 - **Total: 1,000 tokens** (200 buffer)
 
+**All-rounder Heavy Strategy:**
+- Batsmen: 250 tokens (3 players, avg 83 each)
+- All-rounders: 350 tokens (5 players, avg 70 each) ⭐
+- Bowlers: 250 tokens (3 players, avg 83 each)
+- WicketKeepers: 150 tokens (2 players, avg 75 each)
+- **Total: 1,000 tokens** (200 buffer)
+- **Why:** All-rounders can bowl AND bat, giving flexibility
+
 **Aggressive Strategy:**
-- Batsmen: 400 tokens (5 star players)
-- Bowlers: 400 tokens (5 star players)
-- All-rounders: 200 tokens (4 quality players)
-- WicketKeepers: 150 tokens (3 solid players)
-- **Total: 1,150 tokens** (50 buffer)
+- Batsmen: 350 tokens (4 star players)
+- All-rounders: 350 tokens (5 quality players)
+- Bowlers: 300 tokens (3 top bowlers) ⚠️ Compete hard!
+- WicketKeepers: 200 tokens (2 solid keepers) ⚠️ Don't miss out!
+- **Total: 1,200 tokens** (no buffer - risky!)
 
 ---
 

@@ -16,8 +16,10 @@ Each team starts with **2 pre-assigned players**:
 These players are already assigned to their teams and will NOT participate in the auction.
 
 ### Squad Composition
-- **Maximum Squad Size**: 15 players per team
-- **Available Slots for Auction**: 13 players (15 total - 2 pre-assigned)
+- **Squad Size Range**: 11-16 players per team
+- **Available Slots for Auction**: 9-14 players (plus 2 pre-assigned)
+- **Minimum Squad**: 11 players (9 from auction + 2 pre-assigned)
+- **Maximum Squad**: 16 players (14 from auction + 2 pre-assigned)
 
 ---
 
@@ -30,12 +32,14 @@ Each team receives: **1,200 tokens** 🪙
 
 The budget is divided across 4 player categories to ensure balanced team composition:
 
-| Category | Min Budget | Max Budget | Min Players | Max Players |
-|----------|-----------|-----------|-------------|-------------|
-| **Batsman** 🏏 | 300 tokens | 400 tokens | 4 players | 5 players |
-| **Bowler** ⚾ | 300 tokens | 400 tokens | 4 players | 5 players |
-| **All-rounder** ⭐ | 150 tokens | 200 tokens | 3 players | 4 players |
-| **WicketKeeper** 🧤 | 100 tokens | 150 tokens | 2 players | 3 players |
+| Category | Min Budget | Max Budget | Min Players | Max Players | Available Players |
+|----------|-----------|-----------|-------------|-------------|-------------------|
+| **Batsmen** 🏏 | 250 tokens | 350 tokens | 3 players | 4 players | 31 |
+| **All-rounders** ⭐ | 200 tokens | 350 tokens | 3 players | 5 players | 33 |
+| **Bowlers** ⚾ | 200 tokens | 300 tokens | 2 players | 3 players | 21 ⚠️ |
+| **WicketKeepers** 🧤 | 100 tokens | 200 tokens | 1 player | 2 players | 14 ⚠️ |
+
+**⚠️ Note:** Bowlers and WicketKeepers are in LIMITED supply. Competition will be intense!
 
 **Key Points:**
 - Teams MUST spend at least the minimum budget in each category
@@ -52,24 +56,27 @@ The budget is divided across 4 player categories to ensure balanced team composi
 The auction is conducted in **4 sequential phases**, one for each player category:
 
 #### **Phase 1: Batsmen** 🏏
-- All batsmen are auctioned first
-- Teams bid within their batsman budget (300-400 tokens)
-- Must acquire 4-5 batsmen
+- All batsmen are auctioned first (31 available)
+- Teams bid within their batsman budget (250-350 tokens)
+- Must acquire 3-4 batsmen
 
-#### **Phase 2: Bowlers** ⚾
-- All bowlers are auctioned second
-- Teams bid within their bowler budget (300-400 tokens)
-- Must acquire 4-5 bowlers
+#### **Phase 2: All-rounders** ⭐
+- All all-rounders are auctioned second (33 available)
+- Teams bid within their all-rounder budget (200-350 tokens)
+- Must acquire 3-5 all-rounders
+- **Most flexible category** - can fill multiple roles
 
-#### **Phase 3: All-rounders** ⭐
-- All all-rounders are auctioned third
-- Teams bid within their all-rounder budget (150-200 tokens)
-- Must acquire 3-4 all-rounders
+#### **Phase 3: Bowlers** ⚾
+- All bowlers are auctioned third (21 available) ⚠️ **LIMITED**
+- Teams bid within their bowler budget (200-300 tokens)
+- Must acquire 2-3 bowlers
+- **High competition expected** - only 21 for 8 teams!
 
 #### **Phase 4: WicketKeepers** 🧤
-- All wicketkeepers are auctioned last
-- Teams bid within their wicketkeeper budget (100-150 tokens)
-- Must acquire 2-3 wicketkeepers
+- All wicketkeepers are auctioned last (14 available) ⚠️ **LIMITED**
+- Teams bid within their wicketkeeper budget (100-200 tokens)
+- Must acquire 1-2 wicketkeepers
+- **Critical phase** - every team needs at least one!
 
 ---
 
@@ -202,10 +209,10 @@ This prevents Team A from overspending on batsmen and forces balanced spending.
 - **101 players** available for auction
 
 ### Distribution by Role
-- Batsmen: ~25-30 players
-- Bowlers: ~25-30 players
-- All-rounders: ~20-25 players
-- WicketKeepers: ~10-15 players
+- **Batsmen**: 31 players (adequate supply)
+- **All-rounders**: 33 players (good supply)
+- **Bowlers**: 21 players ⚠️ (LIMITED - high demand expected)
+- **WicketKeepers**: 14 players ⚠️ (LIMITED - competitive bidding expected)
 
 ### Total Budget Pool
 - 8 teams × 1,200 tokens = **9,600 tokens** total
