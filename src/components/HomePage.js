@@ -409,7 +409,7 @@ const HomePage = ({ auctionState }) => {
                     }`}
                   >
                     <div className="flex items-center gap-4">
-                      <div className={`w-8 h-8 rounded-full flex items-center justify-center font-bold ${
+                      <div className={`w-10 h-10 rounded-full flex items-center justify-center font-bold ${
                         index === 0 ? 'bg-yellow-500 text-white' :
                         index === 1 ? 'bg-gray-500 text-white' :
                         index === 2 ? 'bg-orange-500 text-white' :

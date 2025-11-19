@@ -67,10 +67,10 @@ const TeamDashboard = ({ teams }) => {
                       <img
                         src={`/${teamData.logo}`}
                         alt={`${teamName} logo`}
-                        className="w-8 h-8 rounded-full object-cover opacity-90 border border-white/30 cursor-pointer transition-all duration-300 group-hover:scale-150 group-hover:z-50 group-hover:shadow-2xl group-hover:border-white/60"
+                        className="w-12 h-12 rounded-full object-cover opacity-90 border border-white/30 cursor-pointer transition-all duration-300 group-hover:scale-150 group-hover:z-50 group-hover:shadow-2xl group-hover:border-white/60"
                         onError={(e) => {
                           // Fallback to team initials
-                          e.target.outerHTML = `<div class="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center text-xs font-bold border border-white/30 cursor-pointer transition-all duration-300 hover:scale-150 hover:z-50 hover:shadow-2xl hover:border-white/60">${teamName.split(' ').map(word => word[0]).join('').substring(0, 2)}</div>`;
+                          e.target.outerHTML = `<div class="w-12 h-12 rounded-full bg-white/20 flex items-center justify-center text-sm font-bold border border-white/30 cursor-pointer transition-all duration-300 hover:scale-150 hover:z-50 hover:shadow-2xl hover:border-white/60">${teamName.split(' ').map(word => word[0]).join('').substring(0, 2)}</div>`;
                         }}
                       />
                       {/* Tooltip on hover */}
@@ -80,7 +80,7 @@ const TeamDashboard = ({ teams }) => {
                     </div>
                   ) : (
                     <div className="relative group">
-                      <div className="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center text-xs font-bold border border-white/30 cursor-pointer transition-all duration-300 group-hover:scale-150 group-hover:z-50 group-hover:shadow-2xl group-hover:border-white/60">
+                      <div className="w-12 h-12 rounded-full bg-white/20 flex items-center justify-center text-sm font-bold border border-white/30 cursor-pointer transition-all duration-300 group-hover:scale-150 group-hover:z-50 group-hover:shadow-2xl group-hover:border-white/60">
                         {teamName.split(' ').map(word => word[0]).join('').substring(0, 2)}
                       </div>
                       {/* Tooltip on hover */}
