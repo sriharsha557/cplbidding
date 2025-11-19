@@ -58,7 +58,6 @@ function App() {
           // Calculate auction progress from database
           const soldPlayers = data.players.filter(p => p.Status === 'Sold' && p.SoldTo);
           const unsoldPlayers = data.players.filter(p => p.Status === 'Unsold');
-          const availablePlayers = data.players.filter(p => p.Status === 'Available');
           
           // Find current player index (first available player)
           const currentIdx = sortedPlayers.findIndex(p => p.Status === 'Available');
