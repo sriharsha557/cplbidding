@@ -46,6 +46,55 @@ function App() {
     return () => window.removeEventListener('resize', handleResize);
   }, []);
 
+  // Auto-refresh data for public view (polling every 5 seconds)
+  useEffect(() => {
+    if (currentView === 'home' && auctionState.initialized) {
+      // Initial load
+      const loadData = async () => {
+        try {
+          const data = await supabaseAuctionService.loadData();
+          const sortedPlayers = sortPlayersByAuctionOrder(data.players);
+          
+          // Calculate auction progress from database
+          const soldPlayers = data.players.filter(p => p.Status === 'Sold' && p.SoldTo);
+          const unsoldPlayers = data.players.filter(p => p.Status === 'Unsold');
+          const availablePlayers = data.players.filter(p => p.Status === 'Available');
+          
+          // Find current player index (first available player)
+          const currentIdx = sortedPlayers.findIndex(p => p.Status === 'Available');
+          
+          // Build auction history from sold players
+          const history = soldPlayers.map(p => ({
+            Player: p.Name,
+            Role: p.Role,
+            BaseTokens: p.BaseTokens,
+            SoldPrice: p.SoldPrice || p.BaseTokens,
+            Team: p.SoldTo,
+            TokensLeft: 0, // Will be calculated from team data
+            SquadSize: 0
+          }));
+          
+          setAuctionState(prev => ({
+            ...prev,
+            players: sortedPlayers,
+            teams: data.teams,
+            currentPlayerIdx: currentIdx >= 0 ? currentIdx : sortedPlayers.length,
+            auctionHistory: history,
+            unsoldPlayers: unsoldPlayers,
+            auctionStarted: soldPlayers.length > 0 || currentIdx >= 0
+          }));
+        } catch (error) {
+          console.error('Auto-refresh failed:', error);
+        }
+      };
+      
+      loadData(); // Load immediately
+      const refreshInterval = setInterval(loadData, 5000); // Then every 5 seconds
+      
+      return () => clearInterval(refreshInterval);
+    }
+  }, [currentView, auctionState.initialized]);
+
   const loadAuctionData = async () => {
     setLoading(true);
     const loadingToast = toast.loading('Loading auction data...');
