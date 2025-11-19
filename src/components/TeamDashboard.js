@@ -66,7 +66,8 @@ const TeamDashboard = ({ teams }) => {
                     <div className="relative group">
                       <img
                         src={`/${teamData.logo}`}
-                        alt={`${teamName} logo`}
+                        alt=""
+                        title=""
                         className="w-12 h-12 rounded-full object-cover opacity-90 border border-white/30 cursor-pointer transition-all duration-300 group-hover:scale-150 group-hover:z-50 group-hover:shadow-2xl group-hover:border-white/60"
                         onError={(e) => {
                           // Fallback to team initials

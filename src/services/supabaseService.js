@@ -214,7 +214,11 @@ class SupabaseAuctionService {
           photo_filename: player.PhotoFileName || null,
           department: player.Department || null,
           auction_order: index + 1,
-          status: 'Available'
+          status: player.Status || 'Available',
+          sold_to: player.SoldTo || null,
+          sold_price: player.SoldPrice || 0,
+          is_captain: player.IsCaptain || false,
+          is_vice_captain: player.IsViceCaptain || false
         })));
 
       if (playersError) {
@@ -280,8 +284,12 @@ class SupabaseAuctionService {
           photo_filename: player.PhotoFileName || null,
           department: player.Department || null,
           auction_order: index + 1,
-          // Only set status if not already set (preserve existing auction data)
-          status: 'Available'
+          // Read captain data from Excel if available
+          status: player.Status || 'Available',
+          sold_to: player.SoldTo || null,
+          sold_price: player.SoldPrice || 0,
+          is_captain: player.IsCaptain || false,
+          is_vice_captain: player.IsViceCaptain || false
         })), {
           onConflict: 'player_id',
           ignoreDuplicates: false
