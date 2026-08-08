@@ -1,4 +1,4 @@
-# Revised Budget Analysis - CPL 2025
+# Revised Budget Analysis - CPL 2026
 
 ## Current Player Distribution
 
@@ -187,4 +187,4 @@ This is the most practical solution that:
 
 ---
 
-*Analysis Date: November 2025*
+*Analysis Date: November 2026*

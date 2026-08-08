@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Eye, Users, Trophy, TrendingUp, Clock, Star, Lock, ArrowRightLeft, Gavel } from 'lucide-react';
+import { Eye, Users, Trophy, TrendingUp, Clock } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 import TeamDashboard from './TeamDashboard';
@@ -12,8 +12,7 @@ import TransparencyFeed from './TransparencyFeed';
 import { getCurrentAuctionPhase, ROLE_EMOJIS } from '../utils/auctionUtils';
 import { 
   calculateRetentionStats, 
-  calculateTradingStats,
-  LEAGUE_PHASES
+  calculateTradingStats
 } from '../utils/leaguePhaseUtils';
 
 const HomePageEnhanced = ({ 
@@ -88,7 +87,7 @@ const HomePageEnhanced = ({
               />
             </div>
 
-            <h1 className="text-4xl md:text-5xl font-bold text-white mb-2">CPL Auction 2025</h1>
+            <h1 className="text-4xl md:text-5xl font-bold text-white mb-2">CPL Auction 2026</h1>
             <p className="text-xl text-emerald-100">Cricket Premier League Digital Bidding System</p>
           </motion.div>
 

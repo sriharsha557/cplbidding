@@ -1,485 +1,626 @@
 import React, { useState, useEffect } from 'react';
-import { Eye, Users, Trophy, TrendingUp, Clock, Star } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { getCurrentAuctionPhase, ROLE_EMOJIS } from '../utils/auctionUtils';
 import TeamDashboard from './TeamDashboard';
 import CategoryProgress from './CategoryProgress';
 import AuctionProgress from './AuctionProgress';
-import { getCurrentAuctionPhase, ROLE_EMOJIS } from '../utils/auctionUtils';
 
+/* ── Floodlight Day CSS variables injected once ── */
+const THEME = `
+  @import url('https://fonts.googleapis.com/css2?family=Anton&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@500;600&display=swap');
+  :root {
+    --fl-bg: #F4F1E6;
+    --fl-bg-top: #FBF9F1;
+    --fl-surface: #FFFFFF;
+    --fl-surface-2: #F8F5EA;
+    --fl-line: rgba(27,42,34,0.10);
+    --fl-line-strong: rgba(27,42,34,0.20);
+    --fl-gold: #A9770F;
+    --fl-gold-fill: #C9911A;
+    --fl-teal: #0F6E56;
+    --fl-amber: #B04A0E;
+    --fl-red: #B4302F;
+    --fl-purple: #5B4A9C;
+    --fl-ink: #1B2A22;
+    --fl-ink-dim: #4E6156;
+    --fl-ink-faint: #8C978E;
+  }
+  .fl-mono { font-family: 'IBM Plex Mono', monospace; }
+  .fl-anton { font-family: 'Anton', sans-serif; }
+  .fl-sans { font-family: 'IBM Plex Sans', sans-serif; }
+`;
+
+function injectTheme() {
+  if (!document.getElementById('fl-theme')) {
+    const s = document.createElement('style');
+    s.id = 'fl-theme';
+    s.textContent = THEME;
+    document.head.appendChild(s);
+  }
+}
+
+/* ── Small reusable pieces ── */
+const LiveDot = () => (
+  <span style={{
+    display:'inline-block', width:7, height:7, borderRadius:'50%',
+    background:'var(--fl-red)', boxShadow:'0 0 0 4px rgba(180,48,47,0.14)',
+    flexShrink:0
+  }} />
+);
+
+const SbCell = ({ value, label, color }) => (
+  <div style={{
+    padding:'26px 20px', textAlign:'center',
+    borderRight:'1px solid var(--fl-line)', flex:1
+  }}>
+    <div className="fl-anton" style={{fontSize:38,lineHeight:1,color}}>
+      {value}
+    </div>
+    <div style={{
+      marginTop:8, fontSize:11, letterSpacing:'0.12em',
+      textTransform:'uppercase', color:'var(--fl-ink-faint)'
+    }}>
+      {label}
+    </div>
+  </div>
+);
+
+const TabBar = ({ tabs, active, onSelect }) => (
+  <div style={{
+    display:'flex', borderBottom:'1px solid var(--fl-line-strong)',
+    maxWidth:1080, margin:'0 auto', padding:'0 4px'
+  }}>
+    {tabs.map(t => (
+      <button key={t.id} onClick={() => onSelect(t.id)}
+        style={{
+          padding:'14px 20px', fontSize:13,
+          color: active===t.id ? 'var(--fl-gold)' : 'var(--fl-ink-faint)',
+          borderBottom: active===t.id ? '2px solid var(--fl-gold)' : '2px solid transparent',
+          fontWeight: active===t.id ? 600 : 400,
+          letterSpacing:'0.02em', background:'none', border:'none',
+          cursor:'pointer', transition:'all 0.15s'
+        }}
+      >
+        {t.label}
+      </button>
+    ))}
+  </div>
+);
+
+const SectionTitle = ({ children }) => (
+  <div className="fl-anton" style={{
+    fontSize:13, letterSpacing:'0.15em',
+    textTransform:'uppercase', color:'var(--fl-gold)', marginBottom:20
+  }}>
+    {children}
+  </div>
+);
+
+/* ── Pre-auction landing (not started yet) ── */
+const PreAuctionHero = ({ teams, players, maxTokens }) => (
+  <div style={{ padding:'72px 40px 60px', textAlign:'center' }}>
+    <div style={{
+      fontSize:12, letterSpacing:'0.25em',
+      color:'var(--fl-ink-faint)', textTransform:'uppercase', marginBottom:6
+    }}>
+      Colruyt Group presents
+    </div>
+    <div className="fl-anton" style={{
+      fontSize:13, letterSpacing:'0.15em',
+      color:'var(--fl-gold)', textTransform:'uppercase', marginBottom:20
+    }}>
+      Colruyt Premier League 2026
+    </div>
+    <div className="fl-anton" style={{
+      fontSize: window.innerWidth < 600 ? 42 : 60,
+      textTransform:'uppercase', lineHeight:1, marginBottom:16,
+      background:'linear-gradient(180deg, var(--fl-ink), var(--fl-teal))',
+      WebkitBackgroundClip:'text', WebkitTextFillColor:'transparent',
+      backgroundClip:'text'
+    }}>
+      Live Auction
+    </div>
+
+    {/* Status pill */}
+    <div style={{
+      display:'inline-flex', alignItems:'center', gap:10,
+      background:'var(--fl-surface)', border:'1px solid var(--fl-line-strong)',
+      borderRadius:100, padding:'10px 22px', marginBottom:40
+    }}>
+      <span style={{
+        width:8, height:8, borderRadius:'50%',
+        background:'var(--fl-amber)', display:'inline-block'
+      }} />
+      <span style={{fontSize:13, color:'var(--fl-ink-dim)', fontWeight:500}}>
+        Awaiting auction start
+      </span>
+    </div>
+
+    {/* KPI strip */}
+    <div style={{
+      display:'grid', gridTemplateColumns:'repeat(3,1fr)',
+      maxWidth:680, margin:'0 auto',
+      background:'var(--fl-surface)', border:'1px solid var(--fl-line-strong)',
+      borderRadius:4
+    }}>
+      {[
+        { label:'Teams Ready', value: Object.keys(teams).length, color:'var(--fl-teal)' },
+        { label:'Players Available', value: players.length, color:'var(--fl-gold)' },
+        { label:'Total Budget', value: `${(maxTokens * Object.keys(teams).length).toLocaleString()} 🪙`, color:'var(--fl-purple)' }
+      ].map((item,i) => (
+        <div key={i} style={{
+          padding:'28px 16px', textAlign:'center',
+          borderRight: i < 2 ? '1px solid var(--fl-line)' : 'none'
+        }}>
+          <div className="fl-anton" style={{fontSize:34, color:item.color, lineHeight:1}}>
+            {item.value}
+          </div>
+          <div style={{
+            marginTop:8, fontSize:11, letterSpacing:'0.12em',
+            textTransform:'uppercase', color:'var(--fl-ink-faint)'
+          }}>
+            {item.label}
+          </div>
+        </div>
+      ))}
+    </div>
+
+    <div style={{marginTop:36, fontSize:13, color:'var(--fl-ink-faint)'}}>
+      This page will automatically update when the auction begins
+    </div>
+  </div>
+);
+
+/* ── Auction-complete panel ── */
+const AuctionCompletePanel = ({ totalSold, totalUnsold, totalSpent }) => (
+  <div style={{ padding:'60px 40px', textAlign:'center', maxWidth:1080, margin:'0 auto' }}>
+    {/* Trophy with rings */}
+    <div style={{ position:'relative', width:120, height:120, margin:'0 auto 24px' }}>
+      {[0,-16,-32].map((offset,i) => (
+        <div key={i} style={{
+          position:'absolute', inset:offset,
+          border:`1px solid ${i===0?'var(--fl-line-strong)':i===1?'var(--fl-line)':'rgba(169,119,15,0.08)'}`,
+          borderRadius:'50%'
+        }} />
+      ))}
+      <div style={{
+        position:'absolute', inset:0, display:'flex',
+        alignItems:'center', justifyContent:'center', fontSize:44
+      }}>🏆</div>
+    </div>
+
+    <div className="fl-anton" style={{
+      fontSize:36, textTransform:'uppercase', letterSpacing:'0.02em', color:'var(--fl-ink)'
+    }}>
+      Auction Complete
+    </div>
+    <div style={{ marginTop:8, color:'var(--fl-ink-dim)', fontSize:14 }}>
+      All {totalSold + totalUnsold} players have been processed
+    </div>
+
+    <div style={{
+      display:'grid', gridTemplateColumns:'repeat(3,1fr)',
+      gap:14, maxWidth:720, margin:'36px auto 0'
+    }}>
+      {[
+        { value: totalSold, label:'Players Sold', color:'var(--fl-teal)' },
+        { value: totalUnsold, label:'Unsold Players', color:'var(--fl-amber)' },
+        { value: totalSpent.toLocaleString(), label:'Total Spent 🪙', color:'var(--fl-gold)' }
+      ].map((item,i) => (
+        <div key={i} style={{
+          background:'var(--fl-surface-2)', border:'1px solid var(--fl-line-strong)',
+          borderRadius:4, padding:'24px 16px'
+        }}>
+          <div className="fl-mono" style={{fontSize:30, fontWeight:600, color:item.color}}>
+            {item.value}
+          </div>
+          <div style={{
+            marginTop:6, fontSize:11, letterSpacing:'0.1em',
+            textTransform:'uppercase', color:'var(--fl-ink-faint)'
+          }}>
+            {item.label}
+          </div>
+        </div>
+      ))}
+    </div>
+  </div>
+);
+
+/* ── Current player on auction ── */
+const CurrentPlayerPanel = ({ currentPlayer, currentPhase }) => (
+  <div style={{ maxWidth:1080, margin:'0 auto', padding:'40px 40px 0' }}>
+    <SectionTitle>Now on auction</SectionTitle>
+    <div style={{
+      display:'grid', gridTemplateColumns:'auto 1fr',
+      gap:40, alignItems:'start',
+      background:'var(--fl-surface)', border:'1px solid var(--fl-line-strong)',
+      borderRadius:4, overflow:'hidden'
+    }}>
+      {/* Photo */}
+      <div style={{ width:220, flexShrink:0, alignSelf:'stretch', minHeight:280 }}>
+        <img
+          src={currentPlayer.PhotoFileName
+            ? `/players/${currentPlayer.PhotoFileName}`
+            : '/placeholder-player.svg'}
+          alt={currentPlayer.Name}
+          style={{
+            width:'100%', height:'100%', objectFit:'cover',
+            objectPosition:'top', display:'block', minHeight:280
+          }}
+          onError={e => { e.target.src = '/placeholder-player.svg'; }}
+        />
+      </div>
+
+      {/* Details */}
+      <div style={{ padding:'32px 32px 32px 0' }}>
+        <div style={{
+          fontSize:11, letterSpacing:'0.15em', textTransform:'uppercase',
+          color:'var(--fl-ink-faint)', marginBottom:6
+        }}>
+          {ROLE_EMOJIS[currentPlayer.Role]} {currentPlayer.Role} · ID {currentPlayer.PlayerID}
+        </div>
+        <div className="fl-anton" style={{
+          fontSize: window.innerWidth < 600 ? 28 : 40,
+          color:'var(--fl-ink)', lineHeight:1.05, marginBottom:20
+        }}>
+          {currentPlayer.Name}
+        </div>
+
+        {/* Base price badge */}
+        <div style={{
+          display:'inline-flex', alignItems:'center', gap:8,
+          background:'var(--fl-surface-2)', border:'1px solid var(--fl-line-strong)',
+          borderRadius:4, padding:'10px 18px', marginBottom:24
+        }}>
+          <span style={{fontSize:12, color:'var(--fl-ink-faint)', letterSpacing:'0.08em'}}>BASE PRICE</span>
+          <span className="fl-mono" style={{fontSize:22, fontWeight:600, color:'var(--fl-gold)'}}>
+            🪙 {currentPlayer.BaseTokens}
+          </span>
+        </div>
+
+        {/* Phase progress */}
+        {currentPhase && (
+          <div>
+            <div style={{
+              display:'flex', justifyContent:'space-between', marginBottom:6,
+              fontSize:12, color:'var(--fl-ink-dim)'
+            }}>
+              <span>{currentPhase.phaseName} — Phase {currentPhase.phase}/{currentPhase.totalPhases}</span>
+              <span>{currentPhase.categoryProgress.current}/{currentPhase.categoryProgress.total} players</span>
+            </div>
+            <div style={{
+              height:4, background:'var(--fl-line-strong)',
+              borderRadius:2, overflow:'hidden'
+            }}>
+              <motion.div
+                initial={{ width:0 }}
+                animate={{ width: `${currentPhase.categoryProgress.percentage}%` }}
+                transition={{ duration:0.6 }}
+                style={{ height:'100%', background:'var(--fl-teal)', borderRadius:2 }}
+              />
+            </div>
+          </div>
+        )}
+
+        {/* Bidding in progress pill */}
+        <div style={{
+          marginTop:24, display:'inline-flex', alignItems:'center', gap:8,
+          background:'rgba(169,119,15,0.08)', border:'1px solid rgba(169,119,15,0.25)',
+          borderRadius:100, padding:'8px 16px'
+        }}>
+          <motion.span
+            animate={{ opacity:[1,0.3,1] }}
+            transition={{ duration:1.4, repeat:Infinity }}
+            style={{ width:7, height:7, borderRadius:'50%', background:'var(--fl-gold)', display:'inline-block' }}
+          />
+          <span style={{ fontSize:12, color:'var(--fl-gold)', fontWeight:600 }}>
+            Bidding in progress
+          </span>
+        </div>
+      </div>
+    </div>
+  </div>
+);
+
+/* ── Leaderboard panel ── */
+const LeaderboardPanel = ({ teamStats, auctionHistory }) => (
+  <div style={{ maxWidth:1080, margin:'0 auto', padding:'40px 40px 0' }}>
+    <SectionTitle>Team Leaderboard</SectionTitle>
+
+    <div style={{ border:'1px solid var(--fl-line-strong)', borderRadius:4, overflow:'hidden', background:'var(--fl-surface)' }}>
+      {teamStats.map((team, i) => (
+        <motion.div
+          key={team.name}
+          initial={{ opacity:0, x:-12 }}
+          animate={{ opacity:1, x:0 }}
+          transition={{ delay: i*0.05 }}
+          style={{
+            display:'flex', alignItems:'center', justifyContent:'space-between',
+            padding:'16px 24px',
+            borderBottom: i < teamStats.length-1 ? '1px solid var(--fl-line)' : 'none',
+            background: i===0 ? 'rgba(169,119,15,0.05)' : 'transparent'
+          }}
+        >
+          <div style={{ display:'flex', alignItems:'center', gap:20 }}>
+            {/* Rank */}
+            <div className="fl-mono" style={{
+              width:28, textAlign:'center', fontSize:13, fontWeight:600,
+              color: i===0?'var(--fl-gold)': i===1?'var(--fl-ink-dim)': i===2?'var(--fl-amber)': 'var(--fl-ink-faint)'
+            }}>
+              {i+1}
+            </div>
+            <div>
+              <div style={{ fontWeight:600, color:'var(--fl-ink)', fontSize:14 }}>{team.name}</div>
+              <div style={{ fontSize:12, color:'var(--fl-ink-faint)', marginTop:2 }}>
+                {team.players} players · avg 🪙 {team.avgPrice}
+              </div>
+            </div>
+          </div>
+
+          <div style={{ textAlign:'right' }}>
+            <div className="fl-mono" style={{ fontSize:18, fontWeight:600, color:'var(--fl-purple)' }}>
+              🪙 {team.tokensSpent.toLocaleString()}
+            </div>
+            <div style={{ fontSize:12, color:'var(--fl-ink-faint)', marginTop:2 }}>
+              🪙 {team.tokensLeft.toLocaleString()} remaining
+            </div>
+          </div>
+        </motion.div>
+      ))}
+    </div>
+
+    {/* Recent sales */}
+    {auctionHistory.length > 0 && (
+      <div style={{ marginTop:40 }}>
+        <SectionTitle>Recent Transactions</SectionTitle>
+        <div style={{ border:'1px solid var(--fl-line-strong)', borderRadius:4, overflow:'hidden', background:'var(--fl-surface)' }}>
+          {auctionHistory.slice(-5).reverse().map((tx, i) => (
+            <div key={i} style={{
+              display:'flex', alignItems:'center', justifyContent:'space-between',
+              padding:'14px 24px',
+              borderBottom: i < 4 ? '1px solid var(--fl-line)' : 'none'
+            }}>
+              <div style={{ display:'flex', alignItems:'center', gap:12 }}>
+                <span style={{ fontSize:18 }}>{ROLE_EMOJIS[tx.Role]}</span>
+                <div>
+                  <div style={{ fontWeight:600, fontSize:13, color:'var(--fl-ink)' }}>{tx.Player}</div>
+                  <div style={{ fontSize:12, color:'var(--fl-ink-faint)' }}>{tx.Role}</div>
+                </div>
+              </div>
+              <div style={{ textAlign:'right' }}>
+                <div className="fl-mono" style={{ fontWeight:600, color:'var(--fl-teal)', fontSize:14 }}>
+                  🪙 {tx.SoldPrice}
+                </div>
+                <div style={{ fontSize:12, color:'var(--fl-ink-faint)' }}>{tx.Team}</div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    )}
+  </div>
+);
+
+/* ── Wrapped sub-panels (team status, category) ── */
+const WrappedPanel = ({ children }) => (
+  <div style={{ maxWidth:1080, margin:'0 auto', padding:'40px 40px 0' }}>
+    {children}
+  </div>
+);
+
+/* ════════════════════════════════════════════════
+   MAIN COMPONENT
+════════════════════════════════════════════════ */
 const HomePage = ({ auctionState }) => {
+  injectTheme();
+
   const [activeView, setActiveView] = useState('overview');
   const [currentTime, setCurrentTime] = useState(new Date());
 
   useEffect(() => {
-    const timer = setInterval(() => {
-      setCurrentTime(new Date());
-    }, 1000);
-    return () => clearInterval(timer);
+    const t = setInterval(() => setCurrentTime(new Date()), 1000);
+    return () => clearInterval(t);
   }, []);
 
-  const currentPlayer = auctionState.auctionStarted && auctionState.currentPlayerIdx < auctionState.players.length
-    ? auctionState.players[auctionState.currentPlayerIdx]
-    : null;
+  const { auctionStarted, currentPlayerIdx, players, teams,
+          auctionHistory, unsoldPlayers, maxTokens } = auctionState;
 
-  const currentPhase = currentPlayer ? getCurrentAuctionPhase(auctionState.players, auctionState.currentPlayerIdx) : null;
-  const isAuctionComplete = auctionState.currentPlayerIdx >= auctionState.players.length;
-  const totalSold = auctionState.auctionHistory.length;
-  const totalUnsold = auctionState.unsoldPlayers.length;
+  const currentPlayer = auctionStarted && currentPlayerIdx < players.length
+    ? players[currentPlayerIdx] : null;
+  const currentPhase  = currentPlayer
+    ? getCurrentAuctionPhase(players, currentPlayerIdx) : null;
+  const isComplete    = currentPlayerIdx >= players.length && auctionStarted;
+  const totalSold     = auctionHistory.length;
+  const totalUnsold   = unsoldPlayers.length;
   const totalProcessed = totalSold + totalUnsold;
-  const totalPlayers = auctionState.players.length;
+  const totalSpent    = auctionHistory.reduce((s,h) => s + h.SoldPrice, 0);
 
-  // Calculate team statistics
-  const teamStats = Object.entries(auctionState.teams).map(([name, data]) => ({
-    name,
-    players: data.squad?.length || 0,
-    tokensLeft: data.tokensLeft || 0,
-    tokensSpent: (data.maxTokens || 0) - (data.tokensLeft || 0),
-    avgPrice: data.squad?.length > 0 ? Math.round(((data.maxTokens || 0) - (data.tokensLeft || 0)) / data.squad.length) : 0
-  })).sort((a, b) => b.tokensSpent - a.tokensSpent);
+  const teamStats = Object.entries(teams).map(([name, d]) => ({
+    name, players: d.squad?.length||0,
+    tokensLeft: d.tokensLeft||0,
+    tokensSpent: (d.maxTokens||0)-(d.tokensLeft||0),
+    avgPrice: (d.squad?.length||0)>0
+      ? Math.round(((d.maxTokens||0)-(d.tokensLeft||0)) / d.squad.length) : 0
+  })).sort((a,b) => b.tokensSpent - a.tokensSpent);
 
-  if (!auctionState.auctionStarted) {
+  const TABS = [
+    { id:'overview',    label:'Live overview' },
+    { id:'teams',       label:'Team status' },
+    { id:'progress',    label:'Category progress' },
+    { id:'leaderboard', label:'Leaderboard' }
+  ];
+
+  const pageStyle = {
+    minHeight:'100vh', fontFamily:"'IBM Plex Sans', sans-serif",
+    background:`
+      radial-gradient(ellipse 900px 460px at 50% -8%, rgba(169,119,15,0.10), transparent 60%),
+      radial-gradient(ellipse 700px 380px at 12% 10%, rgba(15,110,86,0.08), transparent 60%),
+      #F4F1E6`,
+    color:'var(--fl-ink)'
+  };
+
+  /* ── NOT STARTED ── */
+  if (!auctionStarted) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-teal-600 via-emerald-600 to-green-800 flex items-center justify-center">
-        <motion.div 
-          initial={{ opacity: 0, scale: 0.9 }}
-          animate={{ opacity: 1, scale: 1 }}
-          className="text-center text-white p-8"
-        >
-          {/* Colruyt Group Logo - Prominent on Landing */}
-          <motion.div
-            initial={{ opacity: 0, y: -20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.2 }}
-            className="mb-8"
-          >
-            <img 
-              src="/Colruyt_Group.png" 
-              alt="Colruyt Group" 
-              className="h-24 md:h-32 w-auto mx-auto mb-4"
-              onError={(e) => {
-                console.error('Colruyt Group logo not found');
-                e.target.style.display = 'none';
-              }}
-            />
-          </motion.div>
-
-          <motion.div
-            animate={{ rotate: 360 }}
-            transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
-            className="mb-8"
-          >
-            <Trophy size={80} className="mx-auto text-yellow-400" />
-          </motion.div>
-          
-          <h1 className="text-4xl md:text-6xl font-bold mb-4">CPL Auction 2025</h1>
-          <p className="text-xl md:text-2xl mb-8 text-emerald-100">
-            Cricket Premier League Digital Bidding System
-          </p>
-          
-          <div className="bg-white/10 backdrop-blur-sm rounded-xl p-6 mb-8">
-            <h2 className="text-2xl font-semibold mb-4">🏏 Auction Status</h2>
-            <div className="text-lg">
-              <div className="flex items-center justify-center gap-2 mb-2">
-                <Clock size={20} />
-                <span>Auction Not Started</span>
-              </div>
-              <div className="text-emerald-200">
-                Waiting for auction administrator to begin...
-              </div>
-            </div>
-          </div>
-
-          <div className="grid md:grid-cols-3 gap-6 text-center">
-            <div className="bg-white/10 backdrop-blur-sm rounded-lg p-4">
-              <Users size={32} className="mx-auto mb-2 text-blue-300" />
-              <div className="text-lg font-semibold">Teams Ready</div>
-              <div className="text-2xl font-bold">{Object.keys(auctionState.teams).length}</div>
-            </div>
-            
-            <div className="bg-white/10 backdrop-blur-sm rounded-lg p-4">
-              <Star size={32} className="mx-auto mb-2 text-yellow-300" />
-              <div className="text-lg font-semibold">Players Available</div>
-              <div className="text-2xl font-bold">{auctionState.players.length}</div>
-            </div>
-            
-            <div className="bg-white/10 backdrop-blur-sm rounded-lg p-4">
-              <Trophy size={32} className="mx-auto mb-2 text-green-300" />
-              <div className="text-lg font-semibold">Total Budget</div>
-              <div className="text-2xl font-bold">🪙 {(auctionState.maxTokens * Object.keys(auctionState.teams).length).toLocaleString()}</div>
-            </div>
-          </div>
-
-          <div className="mt-8 text-emerald-200">
-            <p>🔄 This page will automatically update when the auction begins</p>
-          </div>
-        </motion.div>
+      <div style={pageStyle}>
+        <PreAuctionHero teams={teams} players={players} maxTokens={maxTokens} />
+        <div style={{
+          textAlign:'center', padding:'0 0 32px',
+          fontSize:12, color:'var(--fl-ink-faint)', letterSpacing:'0.05em'
+        }}>
+          Live updates every few seconds · Public viewing page
+        </div>
       </div>
     );
   }
 
+  /* ── AUCTION ACTIVE / COMPLETE ── */
   return (
-    <div className="min-h-screen bg-gradient-to-br from-teal-600 via-emerald-600 to-green-800">
-      <div className="container mx-auto px-4 py-6 max-w-7xl">
-        {/* Header */}
-        <motion.div 
-          initial={{ opacity: 0, y: -20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="text-center mb-6"
-        >
-          {/* Colruyt Group Logo - Prominent Display */}
-          <div className="flex justify-center mb-6">
-            <motion.img 
-              src="/Colruyt_Group.png" 
-              alt="Colruyt Group" 
-              className="h-20 md:h-24 w-auto"
-              whileHover={{ scale: 1.05 }}
-              transition={{ duration: 0.3 }}
-              onError={(e) => {
-                console.error('Colruyt Group logo not found');
-                e.target.style.display = 'none';
-              }}
-            />
-          </div>
+    <div style={pageStyle}>
 
-          {/* CPL Logo - Secondary */}
-          <div className="flex justify-center mb-4">
-            <motion.img 
-              src="/cpl.png" 
-              alt="CPL Logo" 
-              className="h-14 w-auto"
-              whileHover={{ scale: 1.05 }}
-              onError={(e) => {
-                e.target.style.display = 'none';
-              }}
-            />
-          </div>
+      {/* ── Hero ── */}
+      <div style={{
+        padding:'64px 40px 0', textAlign:'center', position:'relative', overflow:'hidden'
+      }}>
+        {/* conic light sweep */}
+        <div style={{
+          position:'absolute', top:-220, left:'50%', transform:'translateX(-50%)',
+          width:1000, height:520, pointerEvents:'none',
+          background:`conic-gradient(from 200deg at 50% 0%, transparent,
+            rgba(169,119,15,0.10) 15%, transparent 30%)`
+        }} />
 
-          <h1 className="text-3xl md:text-4xl font-bold text-white mb-2">CPL Live Auction</h1>
-          <div className="text-emerald-100 text-sm">
-            {currentTime.toLocaleString()} | Live Updates
-          </div>
-        </motion.div>
-
-        {/* Quick Stats Bar */}
-        <motion.div 
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="bg-white/90 backdrop-blur-sm rounded-xl p-4 mb-6 shadow-lg"
-        >
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
-            <div>
-              <div className="text-2xl font-bold text-teal-600">{totalProcessed}/{totalPlayers}</div>
-              <div className="text-sm text-gray-600">Players Processed</div>
-            </div>
-            <div>
-              <div className="text-2xl font-bold text-green-600">{totalSold}</div>
-              <div className="text-sm text-gray-600">Players Sold</div>
-            </div>
-            <div>
-              <div className="text-2xl font-bold text-orange-600">{totalUnsold}</div>
-              <div className="text-sm text-gray-600">Unsold Players</div>
-            </div>
-            <div>
-              <div className="text-2xl font-bold text-purple-600">
-                {currentPhase ? `${currentPhase.phase}/4` : 'Complete'}
-              </div>
-              <div className="text-sm text-gray-600">Auction Phase</div>
-            </div>
-          </div>
-        </motion.div>
-
-        {/* Navigation Tabs */}
-        <div className="flex flex-wrap gap-2 mb-6 bg-white/10 p-2 rounded-lg">
-          {[
-            { id: 'overview', label: 'Live Overview', icon: Eye },
-            { id: 'teams', label: 'Team Status', icon: Users },
-            { id: 'progress', label: 'Category Progress', icon: TrendingUp },
-            { id: 'leaderboard', label: 'Leaderboard', icon: Trophy }
-          ].map(({ id, label, icon: Icon }) => (
-            <motion.button
-              key={id}
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.98 }}
-              onClick={() => setActiveView(id)}
-              className={`flex items-center gap-2 px-3 md:px-4 py-2 rounded-lg transition-all shadow-md hover:shadow-lg ${
-                activeView === id
-                  ? 'bg-white text-teal-600 shadow-xl'
-                  : 'text-emerald-300 hover:bg-white/20 hover:text-white shadow-md'
-              }`}
-            >
-              <Icon size={18} />
-              <span className="hidden sm:inline">{label}</span>
-            </motion.button>
-          ))}
+        {/* Sponsor + comp label */}
+        <div style={{
+          fontSize:12, letterSpacing:'0.25em',
+          color:'var(--fl-ink-faint)', textTransform:'uppercase', marginBottom:6
+        }}>
+          Colruyt Group presents
+        </div>
+        <div className="fl-anton" style={{
+          fontSize:13, letterSpacing:'0.15em',
+          color:'var(--fl-gold)', textTransform:'uppercase', marginBottom:18
+        }}>
+          Colruyt Premier League 2026
         </div>
 
-        {/* Content Area */}
-        <AnimatePresence mode="wait">
+        {/* Main title */}
+        <h1 className="fl-anton" style={{
+          fontSize: window.innerWidth < 600 ? 42 : 56,
+          letterSpacing:'0.01em', textTransform:'uppercase',
+          background:'linear-gradient(180deg, var(--fl-ink), var(--fl-teal))',
+          WebkitBackgroundClip:'text', WebkitTextFillColor:'transparent',
+          backgroundClip:'text', lineHeight:1, margin:0
+        }}>
+          Live Auction
+        </h1>
+
+        {/* Timestamp */}
+        <div style={{
+          marginTop:12, fontSize:13, color:'var(--fl-ink-dim)',
+          display:'flex', alignItems:'center', justifyContent:'center', gap:8
+        }}>
+          <LiveDot />
+          {currentTime.toLocaleString()} — live updates
+        </div>
+
+        {/* Scoreboard */}
+        <div style={{
+          maxWidth:1080, margin:'36px auto 0', display:'grid',
+          gridTemplateColumns:'repeat(4,1fr)',
+          background:'var(--fl-surface)', border:'1px solid var(--fl-line-strong)',
+          borderRadius:4, position:'relative', zIndex:1,
+          boxShadow:'0 1px 0 rgba(27,42,34,0.03)'
+        }}>
+          <SbCell value={`${totalProcessed}/${players.length}`} label="Players processed" color="var(--fl-teal)" />
+          <SbCell value={totalSold} label="Players sold" color="var(--fl-gold)" />
+          <SbCell value={totalUnsold} label="Unsold players" color="var(--fl-amber)" />
+          <div style={{ padding:'26px 20px', textAlign:'center', flex:1 }}>
+            <div className="fl-anton" style={{
+              fontSize: isComplete ? 22 : 38, lineHeight:1,
+              color:'var(--fl-purple)'
+            }}>
+              {isComplete ? 'Complete' : (currentPhase ? `${currentPhase.phase}/4` : '—')}
+            </div>
+            <div style={{
+              marginTop:8, fontSize:11, letterSpacing:'0.12em',
+              textTransform:'uppercase', color:'var(--fl-ink-faint)'
+            }}>
+              Auction phase
+            </div>
+          </div>
+        </div>
+
+        {/* Tab bar */}
+        <TabBar tabs={TABS} active={activeView} onSelect={setActiveView} />
+      </div>
+
+      {/* ── Panel content ── */}
+      <AnimatePresence mode="wait">
+        <motion.div
+          key={activeView}
+          initial={{ opacity:0, y:8 }}
+          animate={{ opacity:1, y:0 }}
+          exit={{ opacity:0, y:-8 }}
+          transition={{ duration:0.2 }}
+          style={{ paddingBottom:60 }}
+        >
           {activeView === 'overview' && (
-            <motion.div
-              key="overview"
-              initial={{ opacity: 0, x: -20 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: 20 }}
-              transition={{ duration: 0.3 }}
-            >
-              {isAuctionComplete ? (
-                <div className="text-center py-12 bg-white/90 backdrop-blur-sm rounded-xl">
-                  <Trophy size={64} className="mx-auto text-yellow-500 mb-4" />
-                  <h2 className="text-3xl font-bold text-gray-800 mb-4">🎊 Auction Complete!</h2>
-                  <p className="text-gray-600 mb-6">All players have been processed</p>
-                  
-                  <div className="grid md:grid-cols-3 gap-4 max-w-2xl mx-auto">
-                    <div className="bg-green-50 border border-green-200 rounded-lg p-4">
-                      <div className="text-2xl font-bold text-green-600">{totalSold}</div>
-                      <div className="text-sm text-green-700">Players Sold</div>
-                    </div>
-                    <div className="bg-orange-50 border border-orange-200 rounded-lg p-4">
-                      <div className="text-2xl font-bold text-orange-600">{totalUnsold}</div>
-                      <div className="text-sm text-orange-700">Unsold Players</div>
-                    </div>
-                    <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                      <div className="text-2xl font-bold text-blue-600">
-                        🪙 {auctionState.auctionHistory.reduce((sum, h) => sum + h.SoldPrice, 0).toLocaleString()}
-                      </div>
-                      <div className="text-sm text-blue-700">Total Spent</div>
-                    </div>
+            isComplete
+              ? <AuctionCompletePanel totalSold={totalSold} totalUnsold={totalUnsold} totalSpent={totalSpent} />
+              : currentPlayer
+                ? <CurrentPlayerPanel currentPlayer={currentPlayer} currentPhase={currentPhase} />
+                : (
+                  <div style={{ textAlign:'center', padding:'60px 40px', color:'var(--fl-ink-dim)' }}>
+                    <div className="fl-anton" style={{ fontSize:28 }}>Auction in progress</div>
+                    <div style={{ marginTop:8, fontSize:14 }}>Waiting for next player...</div>
                   </div>
-                </div>
-              ) : currentPlayer ? (
-                <div className="bg-white/90 backdrop-blur-sm rounded-xl p-6 shadow-lg">
-                  <h2 className="text-2xl font-bold text-gray-800 mb-6 flex items-center gap-2">
-                    <Eye size={24} />
-                    Current Player on Auction
-                  </h2>
-
-                  {/* Current Phase Info */}
-                  {currentPhase && (
-                    <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg p-4 mb-6 border border-blue-200">
-                      <div className="text-center">
-                        <h3 className="text-xl font-bold text-blue-800 mb-2">
-                          {currentPhase.emoji} {currentPhase.phaseName}
-                        </h3>
-                        <div className="text-sm text-blue-600">
-                          Phase {currentPhase.phase}/{currentPhase.totalPhases} | 
-                          Progress: {currentPhase.categoryProgress.current}/{currentPhase.categoryProgress.total} players 
-                          ({Math.round(currentPhase.categoryProgress.percentage)}%)
-                        </div>
-                        <div className="w-full bg-blue-200 rounded-full h-2 mt-2">
-                          <div 
-                            className="bg-blue-600 h-2 rounded-full transition-all duration-500"
-                            style={{ width: `${currentPhase.categoryProgress.percentage}%` }}
-                          />
-                        </div>
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Current Player Card */}
-                  <div className="grid lg:grid-cols-2 gap-6">
-                    <div className="text-center">
-                      <img
-                        src={currentPlayer.PhotoFileName ? `/players/${currentPlayer.PhotoFileName}` : '/placeholder-player.svg'}
-                        alt={currentPlayer.Name}
-                        className="w-48 h-64 mx-auto mb-4 rounded-lg object-cover border-4 border-teal-200 bg-gray-100 shadow-lg"
-                        onError={(e) => {
-                          e.target.src = '/placeholder-player.svg';
-                        }}
-                      />
-                      
-                      <h3 className="text-2xl font-bold text-gray-800 mb-2">{currentPlayer.Name}</h3>
-                      <p className="text-lg text-gray-600 mb-2">
-                        {ROLE_EMOJIS[currentPlayer.Role]} {currentPlayer.Role}
-                      </p>
-                      <p className="text-xl font-bold text-teal-600">
-                        Base Price: {currentPlayer.BaseTokens} 🪙
-                      </p>
-                      <p className="text-sm text-gray-500 mt-2">
-                        Player ID: {currentPlayer.PlayerID}
-                      </p>
-                    </div>
-
-                    <div className="space-y-4">
-                      <div className="bg-gray-50 rounded-lg p-4">
-                        <h4 className="font-semibold text-gray-800 mb-3">Bidding Status</h4>
-                        <div className="space-y-2 text-sm">
-                          <div className="flex justify-between">
-                            <span>Current Phase:</span>
-                            <span className="font-medium">{currentPhase?.phaseName || 'N/A'}</span>
-                          </div>
-                          <div className="flex justify-between">
-                            <span>Base Price:</span>
-                            <span className="font-medium">🪙 {currentPlayer.BaseTokens}</span>
-                          </div>
-                          <div className="flex justify-between">
-                            <span>Player #{currentPhase?.categoryProgress.current || 0}:</span>
-                            <span className="font-medium">of {currentPhase?.categoryProgress.total || 0} {currentPlayer.Role}s</span>
-                          </div>
-                        </div>
-                      </div>
-
-                      <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
-                        <div className="flex items-center gap-2 mb-2">
-                          <Clock size={16} className="text-yellow-600" />
-                          <span className="font-medium text-yellow-800">Bidding in Progress</span>
-                        </div>
-                        <p className="text-sm text-yellow-700">
-                          Teams are currently placing bids for this player. 
-                          The result will appear here once bidding is complete.
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              ) : (
-                <div className="text-center py-12 bg-white/90 backdrop-blur-sm rounded-xl">
-                  <Clock size={64} className="mx-auto text-gray-400 mb-4" />
-                  <h2 className="text-2xl font-bold text-gray-600">Auction in Progress</h2>
-                  <p className="text-gray-500">Waiting for next player...</p>
-                </div>
-              )}
-            </motion.div>
+                )
           )}
 
           {activeView === 'teams' && (
-            <motion.div
-              key="teams"
-              initial={{ opacity: 0, x: -20 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: 20 }}
-              transition={{ duration: 0.3 }}
-            >
-              <TeamDashboard teams={auctionState.teams} />
-            </motion.div>
+            <WrappedPanel>
+              <SectionTitle>Team Status</SectionTitle>
+              <TeamDashboard teams={teams} />
+            </WrappedPanel>
           )}
 
           {activeView === 'progress' && (
-            <motion.div
-              key="progress"
-              initial={{ opacity: 0, x: -20 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: 20 }}
-              transition={{ duration: 0.3 }}
-            >
-              <CategoryProgress 
-                players={auctionState.players}
-                currentPlayerIdx={auctionState.currentPlayerIdx}
-                teams={auctionState.teams}
-                auctionHistory={auctionState.auctionHistory}
+            <WrappedPanel>
+              <SectionTitle>Category Progress</SectionTitle>
+              <CategoryProgress
+                players={players}
+                currentPlayerIdx={currentPlayerIdx}
+                teams={teams}
+                auctionHistory={auctionHistory}
               />
-              
-              <div className="mt-6">
+              <div style={{ marginTop:24 }}>
                 <AuctionProgress
-                  players={auctionState.players}
-                  currentPlayerIdx={auctionState.currentPlayerIdx}
-                  auctionHistory={auctionState.auctionHistory}
-                  unsoldPlayers={auctionState.unsoldPlayers}
-                  isComplete={isAuctionComplete}
+                  players={players}
+                  currentPlayerIdx={currentPlayerIdx}
+                  auctionHistory={auctionHistory}
+                  unsoldPlayers={unsoldPlayers}
+                  isComplete={isComplete}
                 />
               </div>
-            </motion.div>
+            </WrappedPanel>
           )}
 
           {activeView === 'leaderboard' && (
-            <motion.div
-              key="leaderboard"
-              initial={{ opacity: 0, x: -20 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: 20 }}
-              transition={{ duration: 0.3 }}
-              className="bg-white/90 backdrop-blur-sm rounded-xl p-6 shadow-lg"
-            >
-              <h2 className="text-2xl font-bold text-gray-800 mb-6 flex items-center gap-2">
-                <Trophy size={24} />
-                Team Leaderboard
-              </h2>
-
-              <div className="space-y-4">
-                {teamStats.map((team, index) => (
-                  <motion.div
-                    key={team.name}
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: index * 0.1 }}
-                    className={`flex items-center justify-between p-4 rounded-lg border-2 ${
-                      index === 0 ? 'border-yellow-300 bg-yellow-50' :
-                      index === 1 ? 'border-gray-300 bg-gray-50' :
-                      index === 2 ? 'border-orange-300 bg-orange-50' :
-                      'border-gray-200 bg-white'
-                    }`}
-                  >
-                    <div className="flex items-center gap-4">
-                      <div className={`w-10 h-10 rounded-full flex items-center justify-center font-bold ${
-                        index === 0 ? 'bg-yellow-500 text-white' :
-                        index === 1 ? 'bg-gray-500 text-white' :
-                        index === 2 ? 'bg-orange-500 text-white' :
-                        'bg-gray-300 text-gray-700'
-                      }`}>
-                        {index + 1}
-                      </div>
-                      <div>
-                        <div className="font-semibold text-gray-800">{team.name}</div>
-                        <div className="text-sm text-gray-600">
-                          {team.players} players | Avg: 🪙 {team.avgPrice}
-                        </div>
-                      </div>
-                    </div>
-                    
-                    <div className="text-right">
-                      <div className="font-bold text-lg text-purple-600">
-                        🪙 {team.tokensSpent.toLocaleString()}
-                      </div>
-                      <div className="text-sm text-gray-500">
-                        🪙 {team.tokensLeft.toLocaleString()} left
-                      </div>
-                    </div>
-                  </motion.div>
-                ))}
-              </div>
-
-              {/* Recent Transactions */}
-              {auctionState.auctionHistory.length > 0 && (
-                <div className="mt-8">
-                  <h3 className="text-lg font-semibold text-gray-800 mb-4">Recent Transactions</h3>
-                  <div className="space-y-2">
-                    {auctionState.auctionHistory.slice(-5).reverse().map((transaction, index) => (
-                      <motion.div
-                        key={index}
-                        initial={{ opacity: 0, x: -20 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        transition={{ delay: index * 0.1 }}
-                        className="flex items-center justify-between p-3 bg-green-50 border border-green-200 rounded-lg"
-                      >
-                        <div className="flex items-center gap-3">
-                          <div className="text-lg">{ROLE_EMOJIS[transaction.Role]}</div>
-                          <div>
-                            <div className="font-medium text-gray-800">{transaction.Player}</div>
-                            <div className="text-sm text-gray-600">{transaction.Role}</div>
-                          </div>
-                        </div>
-                        <div className="text-right">
-                          <div className="font-bold text-green-600">🪙 {transaction.SoldPrice}</div>
-                          <div className="text-sm text-gray-600">{transaction.Team}</div>
-                        </div>
-                      </motion.div>
-                    ))}
-                  </div>
-                </div>
-              )}
-            </motion.div>
+            <LeaderboardPanel teamStats={teamStats} auctionHistory={auctionHistory} />
           )}
-        </AnimatePresence>
-
-        {/* Footer */}
-        <motion.div 
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.5 }}
-          className="text-center mt-8 text-emerald-100 text-sm"
-        >
-          <p>🔄 Live updates every few seconds | 👥 Public viewing page</p>
         </motion.div>
+      </AnimatePresence>
+
+      {/* Footer */}
+      <div style={{
+        textAlign:'center', padding:'0 24px 24px',
+        fontSize:11, color:'var(--fl-ink-faint)',
+        letterSpacing:'0.05em', borderTop:'1px solid var(--fl-line-strong)'
+      }}>
+        Live updates every few seconds · Public viewing page
       </div>
+
     </div>
   );
 };

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Heart, ArrowRight, Users, TrendingUp } from 'lucide-react';
+import { Users, TrendingUp } from 'lucide-react';
 
 const TransparencyFeed = ({
   currentPhase = 'retention',

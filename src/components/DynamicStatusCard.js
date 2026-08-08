@@ -12,7 +12,6 @@ const DynamicStatusCard = ({
   auctionStats = {}
 }) => {
   const [countdown, setCountdown] = useState('');
-  const [statusType, setStatusType] = useState('info');
 
   useEffect(() => {
     const interval = setInterval(() => {

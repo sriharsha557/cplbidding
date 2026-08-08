@@ -2,7 +2,7 @@
 
 ## 🎯 Project Overview
 
-Complete redesign of the CPL Auction 2025 homepage to support a **three-phase league system**:
+Complete redesign of the CPL Auction 2026 homepage to support a **three-phase league system**:
 1. **Retention Phase** (🔒) - Teams retain core players
 2. **Trading Phase** (🔁) - Teams propose and approve trades  
 3. **Auction Phase** (🔨) - Open auction for remaining players
@@ -485,20 +485,20 @@ Transitions can be:
 
 ## 🚀 Future Enhancements
 
-### Phase 2 (Q2 2025)
+### Phase 2 (Q2 2026)
 - [ ] Admin phase management panel
 - [ ] Manual trade approval UI
 - [ ] Retention submission form
 - [ ] Phase-wise team analysis
 
-### Phase 3 (Q3 2025)
+### Phase 3 (Q3 2026)
 - [ ] WebSocket real-time updates
 - [ ] Mobile app (React Native)
 - [ ] Email notifications
 - [ ] PDF report generation
 - [ ] Role-based access control
 
-### Phase 4 (Q4 2025)
+### Phase 4 (Q4 2026)
 - [ ] Multi-language support
 - [ ] Dark mode theme
 - [ ] Advanced analytics dashboard

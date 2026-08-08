@@ -34,7 +34,7 @@ const AdminPage = ({
   const [adminPassword, setAdminPassword] = useState('');
 
   // Simple admin authentication (you can enhance this)
-  const ADMIN_PASSWORD = 'cpl2025admin'; // Change this to your preferred password
+  const ADMIN_PASSWORD = 'cpl2026admin'; // Change this to your preferred password
 
   const handleAdminLogin = () => {
     if (adminPassword === ADMIN_PASSWORD) {

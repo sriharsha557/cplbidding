@@ -24,7 +24,7 @@ The CPL auction system now features a **dual-view architecture** that separates 
 ## ⚙️ **Admin Panel**
 **Access**: Click "Admin Panel" button in navigation
 **Purpose**: For auction moderators and administrators
-**Security**: Password protected (default: `cpl2025admin`)
+**Security**: Password protected (default: `cpl2026admin`)
 
 ### Features:
 - **Full Auction Control**: Start, manage, and reset auctions
@@ -117,7 +117,7 @@ The CPL auction system now features a **dual-view architecture** that separates 
 
 ### **For Administrators**
 1. Click "Admin Panel" in navigation
-2. Enter admin password: `cpl2025admin`
+2. Enter admin password: `cpl2026admin`
 3. Set up and manage auction
 4. Control all auction functions
 

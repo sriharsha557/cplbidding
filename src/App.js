@@ -1,12 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { Settings, Home } from 'lucide-react';
-import { motion } from 'framer-motion';
 import toast from 'react-hot-toast';
 
 import HomePage from './components/HomePage';
 import AdminPage from './components/AdminPage';
 import { NotificationProvider } from './components/NotificationSystem';
-
 
 import { auctionService } from './services/auctionService';
 import { supabaseAuctionService } from './services/supabaseService';
@@ -356,59 +353,58 @@ function App() {
   return (
     <NotificationProvider>
       <div className="min-h-screen">
-        {/* Navigation Bar */}
-        <motion.div 
-          initial={{ opacity: 0, y: -20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="bg-white/95 backdrop-blur-sm shadow-lg border-b border-gray-200 sticky top-0 z-50"
-        >
-          <div className="container mx-auto px-4 py-3">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-4">
-                <motion.img 
-                  src="/cpl.png" 
-                  alt="CPL Logo" 
-                  className="h-10 w-auto"
-                  whileHover={{ scale: 1.05 }}
-                  onError={(e) => {
-                    e.target.style.display = 'none';
-                  }}
-                />
-                <h1 className="text-xl font-bold text-gray-800">CPL Auction 2025</h1>
-              </div>
-              
-              <div className="flex items-center gap-2">
-                <motion.button
-                  whileHover={{ scale: 1.02 }}
-                  whileTap={{ scale: 0.98 }}
-                  onClick={() => setCurrentView('home')}
-                  className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-all ${
-                    currentView === 'home'
-                      ? 'bg-teal-600 text-white shadow-lg'
-                      : 'text-gray-600 hover:bg-gray-100'
-                  }`}
-                >
-                  <Home size={18} />
-                  <span className="hidden sm:inline">Public View</span>
-                </motion.button>
-                
-                <motion.button
-                  whileHover={{ scale: 1.02 }}
-                  whileTap={{ scale: 0.98 }}
-                  onClick={() => setCurrentView('admin')}
-                  className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-all ${
-                    currentView === 'admin'
-                      ? 'bg-slate-700 text-white shadow-lg'
-                      : 'text-gray-600 hover:bg-gray-100'
-                  }`}
-                >
-                  <Settings size={18} />
-                  <span className="hidden sm:inline">Admin Panel</span>
-                </motion.button>
-              </div>
-            </div>
+        {/* Navigation Bar — Floodlight theme */}
+        <div style={{
+          display:'flex', alignItems:'center', justifyContent:'space-between',
+          padding:'16px 40px',
+          borderBottom:'1px solid rgba(27,42,34,0.20)',
+          background:'#FBF9F1',
+          position:'sticky', top:0, zIndex:50,
+          fontFamily:"'IBM Plex Sans', sans-serif"
+        }}>
+          {/* Brand */}
+          <div style={{ display:'flex', alignItems:'center', gap:12 }}>
+            <div style={{
+              width:30, height:30, borderRadius:'50%',
+              border:'1.5px solid #A9770F',
+              display:'flex', alignItems:'center', justifyContent:'center',
+              color:'#A9770F', fontFamily:'Anton, sans-serif', fontSize:14
+            }}>C</div>
+            <img
+              src="/cpl.png" alt="CPL"
+              style={{ height:26, width:'auto' }}
+              onError={e => { e.target.style.display='none'; }}
+            />
+            <span style={{ fontSize:15, fontWeight:600, color:'#1B2A22', letterSpacing:'0.02em' }}>
+              CPL Auction 2026
+            </span>
           </div>
-        </motion.div>
+
+          {/* Nav links */}
+          <div style={{ display:'flex', gap:8 }}>
+            {[
+              { id:'home',  label:'Public view' },
+              { id:'admin', label:'Admin panel' }
+            ].map(({ id, label }) => (
+              <button
+                key={id}
+                onClick={() => setCurrentView(id)}
+                style={{
+                  fontSize:12, padding:'8px 18px',
+                  border: currentView===id ? 'none' : '1px solid rgba(27,42,34,0.20)',
+                  borderRadius:100,
+                  background: currentView===id ? '#C9911A' : 'transparent',
+                  color: currentView===id ? '#FFF9EC' : '#4E6156',
+                  fontWeight: currentView===id ? 600 : 400,
+                  letterSpacing:'0.03em', cursor:'pointer',
+                  transition:'all 0.15s'
+                }}
+              >
+                {label}
+              </button>
+            ))}
+          </div>
+        </div>
 
         {/* Main Content */}
         {currentView === 'home' ? (

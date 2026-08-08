@@ -1,4 +1,4 @@
-# CPL 2025 Auction - Quick Reference Guide
+# CPL 2026 Auction - Quick Reference Guide
 
 ## 🎯 Key Numbers
 
