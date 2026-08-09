@@ -95,6 +95,14 @@ function HomePage({ auctionState }) {
             </div>
           </div>
 
+          <div className="cpl-season-note">
+            <div className="cpl-season-note__date"><span>12</span><small>Sep<br />2026</small></div>
+            <div className="cpl-season-note__copy">
+              <strong>The season begins on 12 September.</strong>
+              <p>Expect more fun this year, with planned retention and trading features, venues up to 8 km closer, and improved live camera quality.</p>
+            </div>
+          </div>
+
           <div className="cpl-scoreboard">
             <Stat value={Object.keys(teams).length} label="Teams ready" accent="mint" />
             <Stat value={players.length} label="Players in pool" />
