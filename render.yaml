@@ -1,0 +1,10 @@
+services:
+  - type: web
+    name: cpl-auction
+    runtime: node
+    buildCommand: npm ci && npm run build
+    startCommand: npm run server
+    healthCheckPath: /api/health
+    envVars:
+      - key: NODE_VERSION
+        value: 20.19.0

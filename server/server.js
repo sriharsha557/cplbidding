@@ -17,6 +17,7 @@ app.use('/assets', express.static(path.join(__dirname, '..', 'assets')));
 // Paths
 const ASSETS_DIR = path.join(__dirname, '..', 'assets');
 const EXCEL_PATH = path.join(ASSETS_DIR, 'Cpl_data.xlsx');
+const BUILD_DIR = path.join(__dirname, '..', 'build');
 
 // CPL Category Budget Rules
 const CATEGORY_BUDGETS = {
@@ -379,6 +380,13 @@ app.use((error, req, res, next) => {
     error: 'Internal server error',
     message: process.env.NODE_ENV === 'development' ? error.message : 'Something went wrong'
   });
+});
+
+// Render runs this Express service in production. Serve the React bundle from
+// the same service so the frontend and its /api requests share one origin.
+app.use(express.static(BUILD_DIR));
+app.get('*', (req, res) => {
+  res.sendFile(path.join(BUILD_DIR, 'index.html'));
 });
 
 // Start server
