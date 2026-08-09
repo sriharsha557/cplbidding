@@ -75,6 +75,12 @@ function HomePage({ auctionState }) {
         <div className="cpl-hero__glow cpl-hero__glow--one" />
         <div className="cpl-hero__glow cpl-hero__glow--two" />
         <div className="cpl-container cpl-hero__content">
+          <img
+            className="cpl-hero__trophy"
+            src="/CPL Trophy.png"
+            alt="Colruyt Premier League trophy"
+            onError={event => { event.currentTarget.style.display = 'none'; }}
+          />
           <div className="cpl-hero__topline">
             <span>Colruyt Group presents</span>
             <span className="cpl-season">Season 2026</span>
