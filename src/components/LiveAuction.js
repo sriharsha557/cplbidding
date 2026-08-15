@@ -3,6 +3,7 @@ import { Target, CheckCircle, SkipForward, Trophy, Download } from 'lucide-react
 
 import AuctionTimer from './AuctionTimer';
 import CategoryProgress from './CategoryProgress';
+import { validateBid, maxBidFor, needsWicketKeeper } from '../utils/bidRules';
 
 const LiveAuction = ({ 
   currentPlayer, 
@@ -50,25 +51,25 @@ const LiveAuction = ({
     }
   };
 
+  // Display-only helpers for the affordability/squad-space badges below.
+  // They no longer gate the bid itself — see isValidBid.
   const canAfford = (team, price) => team.tokensLeft >= price;
   const isSquadFull = (team) => team.squad.length >= team.maxSquadSize;
-  
-  const canAffordCategory = (team, playerRole, price) => {
-    if (!team.categoryBudgets || !team.categoryBudgets[playerRole]) return true;
-    return team.categoryBudgets[playerRole].remaining >= price;
-  };
-  
-  const hasRoleSpace = (team, playerRole) => {
-    if (!team.categoryBudgets || !team.categoryBudgets[playerRole]) return true;
-    return team.roleCount[playerRole] < team.categoryBudgets[playerRole].maxPlayers;
-  };
-  
-  const isValidBid = (team, playerRole, price) => {
-    return canAfford(team, price) && 
-           canAffordCategory(team, playerRole, price) && 
-           hasRoleSpace(team, playerRole) && 
-           !isSquadFull(team);
-  };
+
+  // CPL 2026: the only hard rules are the per-player category cap, the team's
+  // remaining purse and squad size. Category spend caps are advisory.
+  const isValidBid = (team, playerRole, price) =>
+    validateBid(team, playerRole, price).valid;
+
+  const bidRejection = currentPlayer && teams[selectedTeam]
+    ? validateBid(teams[selectedTeam], currentPlayer.Role, bidPrice).reason
+    : null;
+
+  const currentMaxBid = currentPlayer ? maxBidFor(currentPlayer.Role) : 0;
+
+  const keeperWarningTeams = Object.entries(teams)
+    .filter(([, team]) => needsWicketKeeper(team))
+    .map(([name]) => name);
 
   const downloadResults = () => {
     const csv = [
@@ -145,6 +146,25 @@ const LiveAuction = ({
         <Target size={24} />
         Live Auction - Category-Based Bidding
       </h2>
+
+        {currentPlayer && (
+          <div className="mb-3 flex flex-wrap items-center gap-3">
+            <span className="inline-flex items-center gap-2 px-3 py-1.5 bg-blue-50 border border-blue-200 rounded-lg text-sm text-blue-800">
+              <strong>Max bid for {currentPlayer.Role}:</strong> 🪙 {currentMaxBid}
+            </span>
+            {bidRejection && (
+              <span className="inline-flex items-center gap-2 px-3 py-1.5 bg-red-50 border border-red-200 rounded-lg text-sm text-red-800">
+                {bidRejection}
+              </span>
+            )}
+          </div>
+        )}
+
+        {keeperWarningTeams.length > 0 && (
+          <div className="mb-3 px-3 py-2 bg-amber-50 border border-amber-200 rounded-lg text-sm text-amber-900">
+            🧤 Needs a wicket keeper before the squad fills: {keeperWarningTeams.join(', ')}
+          </div>
+        )}
 
       {/* Category Progress Section */}
       <div className="mb-8">
