@@ -61,11 +61,15 @@ CREATE UNIQUE INDEX IF NOT EXISTS one_vc_per_team
 ALTER TABLE teams ALTER COLUMN max_tokens SET DEFAULT 1000;
 ALTER TABLE teams ALTER COLUMN tokens_left SET DEFAULT 1000;
 
--- 6. sold_to holds a TEAM NAME, not a team id. The base schema declares it
---    VARCHAR(10), which is too narrow for "Fearless Falcons" and
---    "Quality Strikers" (16 chars each). sql/fix_column_lengths.sql widens it
---    to VARCHAR(50), but there is no way to confirm that was ever applied to
---    this database, and a narrow column would fail on the first real upload.
---    Widening is safe whether or not it has already happened.
-ALTER TABLE players ALTER COLUMN sold_to TYPE VARCHAR(100);
-ALTER TABLE players ALTER COLUMN status TYPE VARCHAR(20);
+-- 6. sold_to holds a TEAM NAME, not a team id, so it must fit the longest
+--    ("Fearless Falcons" and "Quality Strikers", 16 chars each).
+--
+--    The two checked-in schema files disagree about the current type:
+--    supabase/schema.sql says VARCHAR(10) (too narrow — the first real upload
+--    would fail), while sql/supabase-schema.sql says TEXT. Both are stale and
+--    neither can be trusted, and sql/fix_column_lengths.sql may or may not
+--    have been applied. Converting to TEXT is correct from any of those
+--    starting points: it is a widening or a no-op, never a narrowing, so it
+--    cannot fail on or truncate existing data.
+ALTER TABLE players ALTER COLUMN sold_to TYPE TEXT;
+ALTER TABLE players ALTER COLUMN status TYPE TEXT;
