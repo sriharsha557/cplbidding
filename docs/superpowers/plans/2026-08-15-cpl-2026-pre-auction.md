@@ -1507,7 +1507,8 @@ In `uploadExcelData`, replace the destructive delete and the insert. Replace lin
 with:
 
 ```js
-      // Never delete players locked into a team's pre-auction five.
+      // Never delete players locked into a team's pre-auction five, and never
+      // delete the teams they belong to.
       const lockedIds = await this.getPreAuctionPlayerIds();
 
       if (lockedIds.length > 0) {
@@ -1516,6 +1517,38 @@ with:
         await supabase.from('players').delete().neq('id', 0);
         await supabase.from('teams').delete().neq('id', 0);
       }
+```
+
+Because the teams table is no longer cleared when pre-auction players exist, the
+teams write must stop being a plain insert or it will fail on duplicate
+`team_id`. Replace lines 186–188:
+
+```js
+      // Insert teams
+      const { error: teamsError } = await supabase
+        .from('teams')
+        .insert(teams.map(team => ({
+```
+
+with:
+
+```js
+      // Upsert, not insert: teams survive when pre-auction squads are loaded.
+      const { error: teamsError } = await supabase
+        .from('teams')
+        .upsert(teams.map(team => ({
+```
+
+and change the closing of that call from:
+
+```js
+        })));
+```
+
+to:
+
+```js
+        })), { onConflict: 'team_id', ignoreDuplicates: false });
 ```
 
 Then, still in `uploadExcelData`, replace line 207–209:
