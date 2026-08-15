@@ -8,7 +8,8 @@ import { NotificationProvider } from './components/NotificationSystem';
 import { auctionService } from './services/auctionService';
 import { supabaseAuctionService } from './services/supabaseService';
 
-import { sortPlayersByAuctionOrder, playSound } from './utils/auctionUtils';
+import { sortPlayersByAuctionOrder, playSound, CPL_CATEGORY_BUDGETS } from './utils/auctionUtils';
+import { filterAuctionPool } from './utils/preAuctionGuard';
 import { CPL_2026 } from './config/cpl2026';
 
 
@@ -51,12 +52,15 @@ function App() {
       const loadData = async () => {
         try {
           const data = await supabaseAuctionService.loadData();
-          const sortedPlayers = sortPlayersByAuctionOrder(data.players);
-          
+          // The five pre-auction players per team are locked, zero-cost, and
+          // must never enter the biddable pool (or its progress counts).
+          const auctionPool = filterAuctionPool(data.players);
+          const sortedPlayers = sortPlayersByAuctionOrder(auctionPool);
+
           // Calculate auction progress from database
-          const soldPlayers = data.players.filter(p => p.Status === 'Sold' && p.SoldTo);
-          const unsoldPlayers = data.players.filter(p => p.Status === 'Unsold');
-          
+          const soldPlayers = auctionPool.filter(p => p.Status === 'Sold' && p.SoldTo);
+          const unsoldPlayers = auctionPool.filter(p => p.Status === 'Unsold');
+
           // Find current player index (first available player)
           const currentIdx = sortedPlayers.findIndex(p => p.Status === 'Available');
           
@@ -78,7 +82,10 @@ function App() {
             currentPlayerIdx: currentIdx >= 0 ? currentIdx : sortedPlayers.length,
             auctionHistory: history,
             unsoldPlayers: unsoldPlayers,
-            auctionStarted: soldPlayers.length > 0 || currentIdx >= 0
+            // "Started" means at least one player has actually been sold —
+            // not merely that biddable players exist, which is true from the
+            // moment the roster is uploaded, weeks before auction night.
+            auctionStarted: soldPlayers.length > 0
           }));
         } catch (error) {
           console.error('Auto-refresh failed:', error);
@@ -108,24 +115,31 @@ function App() {
         
         data = await auctionService.loadData();
         
-        // Initialize teams with CPL category budgets for Excel data
+        // Initialize teams with CPL category budgets for Excel data. Shape
+        // must match loadData() in supabaseService.js (spent/remaining/max
+        // plus min/minPlayers/maxPlayers), sourced from the same config so
+        // the two data sources never disagree.
         const teamsWithBudgets = {};
         Object.keys(data.teams).forEach(teamName => {
+          const categoryBudgets = {};
+          Object.keys(CPL_CATEGORY_BUDGETS).forEach(role => {
+            const { min, max, minPlayers, maxPlayers } = CPL_CATEGORY_BUDGETS[role];
+            categoryBudgets[role] = { spent: 0, remaining: max, min, max, minPlayers, maxPlayers };
+          });
           teamsWithBudgets[teamName] = {
             ...data.teams[teamName],
-            categoryBudgets: {
-              'Batsman': { spent: 0, remaining: 420, min: 294, max: 420, minPlayers: 4, maxPlayers: 5 },
-              'Bowler': { spent: 0, remaining: 420, min: 294, max: 420, minPlayers: 4, maxPlayers: 5 },
-              'All-rounder': { spent: 0, remaining: 240, min: 168, max: 240, minPlayers: 3, maxPlayers: 4 },
-              'WicketKeeper': { spent: 0, remaining: 120, min: 84, max: 120, minPlayers: 2, maxPlayers: 3 }
-            }
+            categoryBudgets
           };
         });
         data.teams = teamsWithBudgets;
       }
-      
+
+      // The five pre-auction players per team are locked, zero-cost, and
+      // must never enter the biddable pool.
+      const auctionPool = filterAuctionPool(data.players);
+
       // Sort players by auction order (Batsmen first, then Bowlers, etc.)
-      const sortedPlayers = sortPlayersByAuctionOrder(data.players);
+      const sortedPlayers = sortPlayersByAuctionOrder(auctionPool);
       
       setAuctionState(prev => ({
         ...prev,

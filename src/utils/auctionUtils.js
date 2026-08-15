@@ -50,7 +50,7 @@ export const CPL_CATEGORY_BUDGETS = {
   }
 };
 
-// Total team budget - increased for more competitive bidding
+// Total team budget for the auction phase, from config
 export const TOTAL_TEAM_BUDGET = CPL_2026.auctionBudget;
 
 // Sort players by role order, then by base tokens (descending)

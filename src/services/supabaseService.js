@@ -1,6 +1,7 @@
 import { createClient } from '@supabase/supabase-js';
 import { CPL_2026 } from '../config/cpl2026';
 import { splitOutPreAuctionPlayers } from '../utils/preAuctionGuard';
+import { CPL_CATEGORY_BUDGETS } from '../utils/auctionUtils';
 
 // Initialize Supabase client
 const supabaseUrl = process.env.REACT_APP_SUPABASE_URL;
@@ -71,11 +72,14 @@ class SupabaseAuctionService {
             'WicketKeeper': 0,
             'All-rounder': 0
           },
+          // Advisory display figures only — never gate or block anything.
+          // min/minPlayers/maxPlayers come from CPL_CATEGORY_BUDGETS so this
+          // shape matches the Excel fallback path built in App.js.
           categoryBudgets: {
-            'Batsman': { spent: team.batsman_budget_spent || 0, remaining: team.batsman_budget_remaining || 0, max: CPL_2026.advisoryCategorySpend['Batsman'] },
-            'Bowler': { spent: team.bowler_budget_spent || 0, remaining: team.bowler_budget_remaining || 0, max: CPL_2026.advisoryCategorySpend['Bowler'] },
-            'All-rounder': { spent: team.allrounder_budget_spent || 0, remaining: team.allrounder_budget_remaining || 0, max: CPL_2026.advisoryCategorySpend['All-rounder'] },
-            'WicketKeeper': { spent: team.wicketkeeper_budget_spent || 0, remaining: team.wicketkeeper_budget_remaining || 0, max: CPL_2026.advisoryCategorySpend['WicketKeeper'] }
+            'Batsman': { spent: team.batsman_budget_spent || 0, remaining: team.batsman_budget_remaining || 0, max: CPL_2026.advisoryCategorySpend['Batsman'], min: CPL_CATEGORY_BUDGETS['Batsman'].min, minPlayers: CPL_CATEGORY_BUDGETS['Batsman'].minPlayers, maxPlayers: CPL_CATEGORY_BUDGETS['Batsman'].maxPlayers },
+            'Bowler': { spent: team.bowler_budget_spent || 0, remaining: team.bowler_budget_remaining || 0, max: CPL_2026.advisoryCategorySpend['Bowler'], min: CPL_CATEGORY_BUDGETS['Bowler'].min, minPlayers: CPL_CATEGORY_BUDGETS['Bowler'].minPlayers, maxPlayers: CPL_CATEGORY_BUDGETS['Bowler'].maxPlayers },
+            'All-rounder': { spent: team.allrounder_budget_spent || 0, remaining: team.allrounder_budget_remaining || 0, max: CPL_2026.advisoryCategorySpend['All-rounder'], min: CPL_CATEGORY_BUDGETS['All-rounder'].min, minPlayers: CPL_CATEGORY_BUDGETS['All-rounder'].minPlayers, maxPlayers: CPL_CATEGORY_BUDGETS['All-rounder'].maxPlayers },
+            'WicketKeeper': { spent: team.wicketkeeper_budget_spent || 0, remaining: team.wicketkeeper_budget_remaining || 0, max: CPL_2026.advisoryCategorySpend['WicketKeeper'], min: CPL_CATEGORY_BUDGETS['WicketKeeper'].min, minPlayers: CPL_CATEGORY_BUDGETS['WicketKeeper'].minPlayers, maxPlayers: CPL_CATEGORY_BUDGETS['WicketKeeper'].maxPlayers }
           }
         };
       });
@@ -304,7 +308,6 @@ class SupabaseAuctionService {
           logo_file: team.LogoFile || null,
           max_tokens: CPL_2026.auctionBudget,
           max_squad_size: CPL_2026.defaultSquadSize,
-          // Only set initial values if not already set
           tokens_left: CPL_2026.auctionBudget,
           batsman_budget_remaining: CPL_2026.advisoryCategorySpend['Batsman'],
           bowler_budget_remaining: CPL_2026.advisoryCategorySpend['Bowler'],

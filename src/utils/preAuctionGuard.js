@@ -10,6 +10,24 @@
  * @param {string[]} lockedPlayerIds player_id values whose status is PreAuction
  * @returns {{safeToWrite: Array<Object>, skipped: string[]}}
  */
+/**
+ * Filters a player list down to the auction pool: everyone EXCEPT the five
+ * players each team already locked in before the auction (status
+ * 'PreAuction'). Those players are zero-cost, already on a team's squad, and
+ * must never be put up for bidding — including a team's own Captain being
+ * drawn as a lot.
+ *
+ * Squads are populated from the FULL player list elsewhere (loadData), so
+ * this filter is applied only where a list of biddable players is needed —
+ * never upstream of squad population.
+ *
+ * @param {Array<{Status: string}>} players
+ * @returns {Array<Object>} players eligible for the auction
+ */
+export function filterAuctionPool(players) {
+  return players.filter(player => player.Status !== 'PreAuction');
+}
+
 export function splitOutPreAuctionPlayers(incomingPlayers, lockedPlayerIds) {
   // Coerce BOTH sides: Excel yields numeric IDs, the database yields strings.
   // Matching on only one side fails open, which silently empties every team.
