@@ -1,5 +1,6 @@
 import { createClient } from '@supabase/supabase-js';
 import { CPL_2026 } from '../config/cpl2026';
+import { splitOutPreAuctionPlayers } from '../utils/preAuctionGuard';
 
 // Initialize Supabase client
 const supabaseUrl = process.env.REACT_APP_SUPABASE_URL;
@@ -191,22 +192,40 @@ class SupabaseAuctionService {
     }
   }
 
+  /** player_id values currently locked into a team's pre-auction five. */
+  async getPreAuctionPlayerIds() {
+    const { data, error } = await supabase
+      .from('players')
+      .select('player_id')
+      .eq('status', 'PreAuction');
+
+    if (error) throw error;
+    return (data || []).map(row => row.player_id);
+  }
+
   // Upload Excel data to Supabase (clear and insert)
   async uploadExcelData(players, teams) {
     try {
-      console.log('Uploading Excel data to Supabase:', { 
-        playersCount: players.length, 
-        teamsCount: teams.length 
+      console.log('Uploading Excel data to Supabase:', {
+        playersCount: players.length,
+        teamsCount: teams.length
       });
 
-      // Clear existing data (optional - remove if you want to keep existing data)
-      await supabase.from('players').delete().neq('id', 0);
-      await supabase.from('teams').delete().neq('id', 0);
+      // Never delete players locked into a team's pre-auction five, and never
+      // delete the teams they belong to.
+      const lockedIds = await this.getPreAuctionPlayerIds();
 
-      // Insert teams
+      if (lockedIds.length > 0) {
+        await supabase.from('players').delete().neq('status', 'PreAuction');
+      } else {
+        await supabase.from('players').delete().neq('id', 0);
+        await supabase.from('teams').delete().neq('id', 0);
+      }
+
+      // Upsert, not insert: teams survive when pre-auction squads are loaded.
       const { error: teamsError } = await supabase
         .from('teams')
-        .insert(teams.map(team => ({
+        .upsert(teams.map(team => ({
           team_id: team.TeamID,
           team_name: team.TeamName,
           logo_file: team.LogoFile || null,
@@ -217,17 +236,22 @@ class SupabaseAuctionService {
           bowler_budget_remaining: 300,
           allrounder_budget_remaining: 350,
           wicketkeeper_budget_remaining: 200
-        })));
+        })), { onConflict: 'team_id', ignoreDuplicates: false });
 
       if (teamsError) {
         console.error('Teams insert error:', teamsError);
         throw teamsError;
       }
 
-      // Insert players
+      // Insert players, holding back anyone already locked in pre-auction.
+      const { safeToWrite, skipped } = splitOutPreAuctionPlayers(players, lockedIds);
+      if (skipped.length > 0) {
+        console.log(`Skipped ${skipped.length} pre-auction players:`, skipped);
+      }
+
       const { error: playersError } = await supabase
         .from('players')
-        .insert(players.map((player, index) => ({
+        .insert(safeToWrite.map((player, index) => ({
           player_id: player.PlayerID,
           name: player.Name,
           role: player.Role,
@@ -249,7 +273,9 @@ class SupabaseAuctionService {
 
       return {
         success: true,
-        message: `Successfully uploaded ${players.length} players and ${teams.length} teams`
+        message: skipped.length > 0
+          ? `Uploaded ${safeToWrite.length} players and ${teams.length} teams (${skipped.length} pre-auction players preserved)`
+          : `Successfully uploaded ${players.length} players and ${teams.length} teams`
       };
 
     } catch (error) {
@@ -294,10 +320,16 @@ class SupabaseAuctionService {
         throw teamsError;
       }
 
-      // 2. Upsert players (insert or update)
+      // 2. Upsert players, holding back anyone already locked in pre-auction.
+      const lockedIds = await this.getPreAuctionPlayerIds();
+      const { safeToWrite, skipped } = splitOutPreAuctionPlayers(players, lockedIds);
+      if (skipped.length > 0) {
+        console.log(`Skipped ${skipped.length} pre-auction players:`, skipped);
+      }
+
       const { error: playersError } = await supabase
         .from('players')
-        .upsert(players.map((player, index) => ({
+        .upsert(safeToWrite.map((player, index) => ({
           player_id: player.PlayerID,
           name: player.Name,
           role: player.Role,
@@ -323,9 +355,10 @@ class SupabaseAuctionService {
 
       return {
         success: true,
-        playersProcessed: players.length,
+        playersProcessed: safeToWrite.length,
         teamsProcessed: teams.length,
-        message: `Successfully merged ${players.length} players and ${teams.length} teams`
+        message: `Merged ${safeToWrite.length} players and ${teams.length} teams` +
+          (skipped.length > 0 ? ` (${skipped.length} pre-auction players preserved)` : '')
       };
 
     } catch (error) {
