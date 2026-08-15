@@ -12,6 +12,7 @@ import TeamDashboard from './TeamDashboard';
 import AuctionProgress from './AuctionProgress';
 import PlayerValuation from './PlayerValuation';
 import DataCleanup from './DataCleanup';
+import PreAuctionReview from './PreAuctionReview';
 
 import { ROLE_EMOJIS } from '../utils/auctionUtils';
 import { exportAuctionResults } from '../utils/excelExport';
@@ -30,6 +31,7 @@ const AdminPage = ({
   windowSize
 }) => {
   const [activeTab, setActiveTab] = useState('auction');
+  const [setupTab, setSetupTab] = useState('preauction');
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [adminPassword, setAdminPassword] = useState('');
 
@@ -149,13 +151,41 @@ const AdminPage = ({
         </motion.div>
 
         {!auctionState.auctionStarted ? (
-          <AuctionSetup
-            auctionState={auctionState}
-            setAuctionState={setAuctionState}
-            loadAuctionData={loadAuctionData}
-            startAuction={startAuction}
-            loading={loading}
-          />
+          <div className="auction-container rounded-xl p-4 md:p-6 shadow-2xl bg-white/95 backdrop-blur-sm">
+            <div className="flex gap-2 mb-6 bg-gray-100 p-2 rounded-lg">
+              {[
+                { id: 'preauction', label: 'Pre-Auction 2026' },
+                { id: 'setup', label: 'Auction Setup' }
+              ].map(tab => (
+                <button
+                  key={tab.id}
+                  onClick={() => setSetupTab(tab.id)}
+                  className={`px-4 py-2 rounded-lg transition-all ${
+                    setupTab === tab.id
+                      ? 'bg-blue-600 text-white shadow-xl'
+                      : 'text-gray-600 hover:bg-white hover:text-gray-800'
+                  }`}
+                >
+                  {tab.label}
+                </button>
+              ))}
+            </div>
+
+            {setupTab === 'preauction' ? (
+              <PreAuctionReview
+                teams={auctionState.teams}
+                loadAuctionData={loadAuctionData}
+              />
+            ) : (
+              <AuctionSetup
+                auctionState={auctionState}
+                setAuctionState={setAuctionState}
+                loadAuctionData={loadAuctionData}
+                startAuction={startAuction}
+                loading={loading}
+              />
+            )}
+          </div>
         ) : (
           <motion.div 
             initial={{ opacity: 0, y: 20 }}
