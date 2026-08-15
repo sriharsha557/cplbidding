@@ -26,32 +26,27 @@ ALTER TABLE players ADD CONSTRAINT players_pre_auction_role_check
 -- 3. Widen status to admit PreAuction
 --    The live constraint name cannot be assumed (PostgREST/anon access hides
 --    pg_catalog from the app, so it was never verified against the DB
---    directly). Look up every CHECK constraint on players that mentions
---    "status" and drop each by its real name, then add the widened one.
+--    directly). Look up every CHECK constraint that actually keys on the
+--    "status" column and drop each by its real name, then add the widened
+--    one. Scoping via pg_attribute avoids over-matching constraints whose
+--    definition text merely contains the substring "status".
 DO $$
 DECLARE
   con RECORD;
 BEGIN
   FOR con IN
-    SELECT conname
-    FROM pg_constraint
-    WHERE conrelid = 'players'::regclass
-      AND contype = 'c'
-      AND pg_get_constraintdef(oid) ILIKE '%status%'
+    SELECT DISTINCT con.conname
+    FROM pg_constraint con
+    JOIN pg_attribute a ON a.attrelid = con.conrelid AND a.attnum = ANY(con.conkey)
+    WHERE con.conrelid = 'players'::regclass
+      AND con.contype = 'c'
+      AND a.attname = 'status'
   LOOP
     EXECUTE format('ALTER TABLE players DROP CONSTRAINT %I', con.conname);
   END LOOP;
 
-  IF NOT EXISTS (
-    SELECT 1
-    FROM pg_constraint
-    WHERE conrelid = 'players'::regclass
-      AND contype = 'c'
-      AND conname = 'players_status_check'
-  ) THEN
-    ALTER TABLE players ADD CONSTRAINT players_status_check
-      CHECK (status IN ('Available', 'Sold', 'Unsold', 'PreAuction'));
-  END IF;
+  ALTER TABLE players ADD CONSTRAINT players_status_check
+    CHECK (status IN ('Available', 'Sold', 'Unsold', 'PreAuction'));
 END $$;
 
 -- 4. At most one Captain and one Vice-Captain per team.
