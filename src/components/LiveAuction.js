@@ -147,24 +147,22 @@ const LiveAuction = ({
         Live Auction - Category-Based Bidding
       </h2>
 
-        {currentPlayer && (
-          <div className="mb-3 flex flex-wrap items-center gap-3">
-            <span className="inline-flex items-center gap-2 px-3 py-1.5 bg-blue-50 border border-blue-200 rounded-lg text-sm text-blue-800">
-              <strong>Max bid for {currentPlayer.Role}:</strong> 🪙 {currentMaxBid}
-            </span>
-            {bidRejection && (
-              <span className="inline-flex items-center gap-2 px-3 py-1.5 bg-red-50 border border-red-200 rounded-lg text-sm text-red-800">
-                {bidRejection}
-              </span>
-            )}
-          </div>
+      <div className="mb-3 flex flex-wrap items-center gap-3">
+        <span className="inline-flex items-center gap-2 px-3 py-1.5 bg-blue-50 border border-blue-200 rounded-lg text-sm text-blue-800">
+          <strong>Max bid for {currentPlayer.Role}:</strong> 🪙 {currentMaxBid}
+        </span>
+        {bidRejection && (
+          <span className="inline-flex items-center gap-2 px-3 py-1.5 bg-red-50 border border-red-200 rounded-lg text-sm text-red-800">
+            {bidRejection}
+          </span>
         )}
+      </div>
 
-        {keeperWarningTeams.length > 0 && (
-          <div className="mb-3 px-3 py-2 bg-amber-50 border border-amber-200 rounded-lg text-sm text-amber-900">
-            🧤 Needs a wicket keeper before the squad fills: {keeperWarningTeams.join(', ')}
-          </div>
-        )}
+      {keeperWarningTeams.length > 0 && (
+        <div className="mb-3 px-3 py-2 bg-amber-50 border border-amber-200 rounded-lg text-sm text-amber-900">
+          🧤 Needs a wicket keeper before the squad fills: {keeperWarningTeams.join(', ')}
+        </div>
+      )}
 
       {/* Category Progress Section */}
       <div className="mb-8">

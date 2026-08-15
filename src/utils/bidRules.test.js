@@ -44,6 +44,26 @@ test('a full squad is rejected', () => {
   expect(result.reason).toMatch(/squad/i);
 });
 
+test('a NaN price (cleared bid field) is rejected', () => {
+  const result = validateBid(team(), 'Batsman', NaN);
+  expect(result.valid).toBe(false);
+});
+
+test('an undefined price is rejected', () => {
+  const result = validateBid(team(), 'Batsman', undefined);
+  expect(result.valid).toBe(false);
+});
+
+test('a zero price is rejected', () => {
+  const result = validateBid(team(), 'Batsman', 0);
+  expect(result.valid).toBe(false);
+});
+
+test('a negative price is rejected', () => {
+  const result = validateBid(team(), 'Batsman', -10);
+  expect(result.valid).toBe(false);
+});
+
 test('category spend caps never block a bid', () => {
   const overspent = team({
     categoryBudgets: { Batsman: { spent: 999, remaining: -999, max: 420 } }

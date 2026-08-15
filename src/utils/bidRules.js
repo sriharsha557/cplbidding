@@ -14,6 +14,10 @@ export function maxBidFor(role) {
 export function validateBid(team, playerRole, price) {
   if (!team) return { valid: false, reason: 'No team selected.' };
 
+  if (!Number.isFinite(price) || price <= 0) {
+    return { valid: false, reason: 'Enter a bid amount.' };
+  }
+
   if (team.squad.length >= team.maxSquadSize) {
     return { valid: false, reason: `Squad is full (${team.maxSquadSize} players).` };
   }
