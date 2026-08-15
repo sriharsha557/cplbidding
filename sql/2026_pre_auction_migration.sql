@@ -32,9 +32,9 @@ ALTER TABLE players ADD CONSTRAINT players_pre_auction_role_check
 --    definition text merely contains the substring "status".
 DO $$
 DECLARE
-  con RECORD;
+  rec RECORD;
 BEGIN
-  FOR con IN
+  FOR rec IN
     SELECT DISTINCT con.conname
     FROM pg_constraint con
     JOIN pg_attribute a ON a.attrelid = con.conrelid AND a.attnum = ANY(con.conkey)
@@ -42,7 +42,7 @@ BEGIN
       AND con.contype = 'c'
       AND a.attname = 'status'
   LOOP
-    EXECUTE format('ALTER TABLE players DROP CONSTRAINT %I', con.conname);
+    EXECUTE format('ALTER TABLE players DROP CONSTRAINT %I', rec.conname);
   END LOOP;
 
   ALTER TABLE players ADD CONSTRAINT players_status_check
