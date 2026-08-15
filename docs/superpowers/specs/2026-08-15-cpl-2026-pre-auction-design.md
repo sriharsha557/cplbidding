@@ -108,10 +108,11 @@ One migration file, `sql/2026_pre_auction_migration.sql`, targeting the live sch
 | Column | Type | Purpose |
 | --- | --- | --- |
 | `availability` | text, default `Unknown` | `Unknown` \| `Available` \| `Unavailable` |
-| `is_captain` | boolean, default false | Already written by existing code; neither schema file declares it. This makes it real. |
-| `is_vice_captain` | boolean, default false | As above. |
 | `pre_auction_role` | text, nullable | `Captain` \| `ViceCaptain` \| `Squad` \| NULL |
 | `prev_team` | text, nullable | The player's 2025 team. Set by the roster upload. Source of truth for last season. |
+
+`is_captain` and `is_vice_captain` already exist in the live database and are kept as mirrors
+of `pre_auction_role`, since existing code reads them. The migration does not add them.
 
 `status` widens to accept `PreAuction`, so the five locked players sit visibly outside the
 auction pool without masquerading as `Sold`.
@@ -155,27 +156,71 @@ At-*least*-one Captain, at-least-one Vice-Captain, and the three-slot cap cannot
 as unique indexes. They are enforced client-side at submit. A trigger for the three-slot cap
 was considered and rejected as disproportionate for an admin-only flow.
 
-### Pre-migration verification
+### Live database state — verified 2026-08-15
 
-`supabase/schema.sql:43` declares `sold_to VARCHAR(10) REFERENCES teams(team_id)`, but
-`supabaseService` writes a **team name** into that column. The presence of `sql/fix_foreign_key.sql`
-suggests this was already patched in the live database. The live schema must be inspected
-before the migration is written — not inferred from the checked-in schema files, which
-disagree with each other in several places.
+Inspected directly against `https://wtfpchtyungncrwzreft.supabase.co` using the anon key in
+`.env.local`. Findings supersede both checked-in schema files, which are stale.
 
-Sequence: inspect live schema → confirm `sold_to` type and reference → confirm applied
-migration history → write migration → apply → verify existing auction functionality still works.
+**The database is empty.**
 
-Working Supabase credentials are present in `.env.local`.
+| Table | Rows |
+| --- | --- |
+| `teams` | 0 |
+| `players` | 0 |
+| `auction_history` | 0 |
+| `auction_state` | 1 (reset state, last updated 2026-08-09) |
+
+**Columns confirmed present** on `players`: `player_id`, `name`, `role`, `base_tokens`,
+`photo_filename`, `department`, `status`, `sold_to`, `sold_price`, `auction_order`,
+**`is_captain`**, **`is_vice_captain`**. The last two already exist in the live database even
+though neither schema file declares them — the schema files are simply out of date, and the
+migration does not need to add them.
+
+**Columns confirmed absent**, and therefore required by the migration: `players.availability`,
+`players.prev_team`, `players.pre_auction_role`, `teams.pre_auction_submitted`,
+`teams.pre_auction_submitted_at`.
+
+**There is no foreign key between `players` and `teams`.** PostgREST reports no relationship
+in the schema cache; `sql/fix_foreign_key.sql` dropped `players_sold_to_fkey` precisely so
+`sold_to` could hold a team name. `sold_to` is an unconstrained text column. The migration
+risk previously flagged around `sold_to` is resolved — there is no constraint to conflict
+with, and no data to migrate.
+
+Because every table is empty, the migration is low-risk and the post-migration check is a
+smoke test of the app against freshly loaded data rather than a regression check of live
+auction records.
 
 ## Components
 
 ### 2025 roster upload
 
+**Blocked on input data — see "Open blocker" below.** The design assumed the upload would
+match existing player rows and set `prev_team`. With `players` empty, there is nothing to
+match, so the upload must **upsert on `player_id`**: insert the row when absent, set
+`prev_team` when present. This works whether the table is empty or populated, and is safely
+re-runnable.
+
 `src/components/ExcelUpload.js` gains a second, separate mode: **Upload 2025 rosters**,
-reading `PlayerID | Name | Team` and writing only `prev_team`, matched on `player_id` with a
-fallback to name. It touches no other column, so it cannot disturb live auction data, and it
-is safely re-runnable. The existing upload path is unchanged.
+reading `PlayerID | Name | Role | BaseTokens | Team`. `Role` and `BaseTokens` are required
+because the upload may be creating the player row outright. It writes no auction columns
+(`status`, `sold_price`, `pre_auction_role`), so it cannot disturb auction state. The existing
+upload path is unchanged.
+
+## Open blocker — 2025 roster data does not exist
+
+Retention and trade both presuppose knowing each team's 2025 squad. That mapping is not
+available anywhere:
+
+- The `players` table is empty, so `sold_to` holds no 2025 results.
+- No spreadsheet in `assets/` or `data/` contains a player-to-team mapping. Searched every
+  sheet for team/sold/squad/retain columns; the only matches are `TeamID`/`TeamName` in the
+  8-row `Teams` sheets, which list teams but not their members.
+- `data/captain_team_assignments.xlsx` gives Captain and Vice-Captain per team for 8 teams —
+  leadership only, not full squads.
+- `assets/CPL_Auction_Data_2025.xlsx` holds 117 players with `IsCaptain`, but no team column.
+
+The pre-auction flow cannot be populated until someone supplies which players were on which
+team in 2025. Everything else in this spec can be built and tested without it.
 
 ### Pre-auction admin tab
 
@@ -274,8 +319,9 @@ cannot work without it.
 
 Both target pure functions where a defect is silent and expensive.
 
-A manual verification checklist is run against the live database after migration, confirming
-existing auction functionality is unaffected.
+A manual smoke test is run against the live database after migration. Since every table is
+empty, this loads fresh data and walks the flow end to end rather than checking existing
+records for regressions.
 
 ## Sequencing
 
