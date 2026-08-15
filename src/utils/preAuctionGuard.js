@@ -11,7 +11,9 @@
  * @returns {{safeToWrite: Array<Object>, skipped: string[]}}
  */
 export function splitOutPreAuctionPlayers(incomingPlayers, lockedPlayerIds) {
-  const locked = new Set(lockedPlayerIds);
+  // Coerce BOTH sides: Excel yields numeric IDs, the database yields strings.
+  // Matching on only one side fails open, which silently empties every team.
+  const locked = new Set(lockedPlayerIds.map(String));
   const safeToWrite = [];
   const skipped = [];
 
