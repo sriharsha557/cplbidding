@@ -1,4 +1,7 @@
 import { createClient } from '@supabase/supabase-js';
+import { CPL_2026 } from '../config/cpl2026';
+import { splitOutPreAuctionPlayers } from '../utils/preAuctionGuard';
+import { CPL_CATEGORY_BUDGETS } from '../utils/auctionUtils';
 
 // Initialize Supabase client
 const supabaseUrl = process.env.REACT_APP_SUPABASE_URL;
@@ -35,32 +38,7 @@ class SupabaseAuctionService {
 
       if (playersError) throw playersError;
 
-      // Convert to same format as Excel service
-      const teams = {};
-      teamsData.forEach(team => {
-        teams[team.team_name] = {
-          id: team.team_id,
-          logo: team.logo_file,
-          tokensLeft: team.tokens_left,
-          squad: [],
-          maxTokens: team.max_tokens,
-          maxSquadSize: team.max_squad_size,
-          roleCount: {
-            'Batsman': 0,
-            'Bowler': 0,
-            'WicketKeeper': 0,
-            'All-rounder': 0
-          },
-          categoryBudgets: {
-            'Batsman': { spent: team.batsman_budget_spent || 0, remaining: team.batsman_budget_remaining || 350, min: 250, max: 350, minPlayers: 3, maxPlayers: 4 },
-            'Bowler': { spent: team.bowler_budget_spent || 0, remaining: team.bowler_budget_remaining || 300, min: 200, max: 300, minPlayers: 2, maxPlayers: 3 },
-            'All-rounder': { spent: team.allrounder_budget_spent || 0, remaining: team.allrounder_budget_remaining || 350, min: 200, max: 350, minPlayers: 3, maxPlayers: 5 },
-            'WicketKeeper': { spent: team.wicketkeeper_budget_spent || 0, remaining: team.wicketkeeper_budget_remaining || 200, min: 100, max: 200, minPlayers: 1, maxPlayers: 2 }
-          }
-        };
-      });
-
-      // Convert players to same format
+      // Convert players first so squads can be populated from them.
       const players = playersData.map(player => ({
         PlayerID: player.player_id,
         Name: player.name,
@@ -70,8 +48,56 @@ class SupabaseAuctionService {
         Department: player.department,
         Status: player.status,
         SoldTo: player.sold_to,
-        SoldPrice: player.sold_price
+        SoldPrice: player.sold_price,
+        Availability: player.availability || 'Unknown',
+        PreAuctionRole: player.pre_auction_role || null,
+        IsCaptain: player.is_captain || false,
+        IsViceCaptain: player.is_vice_captain || false
       }));
+
+      const teams = {};
+      teamsData.forEach(team => {
+        teams[team.team_name] = {
+          id: team.team_id,
+          logo: team.logo_file,
+          tokensLeft: team.tokens_left,
+          squad: [],
+          maxTokens: team.max_tokens,
+          maxSquadSize: team.max_squad_size,
+          preAuctionSubmitted: team.pre_auction_submitted || false,
+          preAuctionSubmittedAt: team.pre_auction_submitted_at || null,
+          roleCount: {
+            'Batsman': 0,
+            'Bowler': 0,
+            'WicketKeeper': 0,
+            'All-rounder': 0
+          },
+          // Advisory display figures only — never gate or block anything.
+          // min/minPlayers/maxPlayers come from CPL_CATEGORY_BUDGETS so this
+          // shape matches the Excel fallback path built in App.js.
+          categoryBudgets: {
+            'Batsman': { spent: team.batsman_budget_spent || 0, remaining: team.batsman_budget_remaining || 0, max: CPL_2026.advisoryCategorySpend['Batsman'], min: CPL_CATEGORY_BUDGETS['Batsman'].min, minPlayers: CPL_CATEGORY_BUDGETS['Batsman'].minPlayers, maxPlayers: CPL_CATEGORY_BUDGETS['Batsman'].maxPlayers },
+            'Bowler': { spent: team.bowler_budget_spent || 0, remaining: team.bowler_budget_remaining || 0, max: CPL_2026.advisoryCategorySpend['Bowler'], min: CPL_CATEGORY_BUDGETS['Bowler'].min, minPlayers: CPL_CATEGORY_BUDGETS['Bowler'].minPlayers, maxPlayers: CPL_CATEGORY_BUDGETS['Bowler'].maxPlayers },
+            'All-rounder': { spent: team.allrounder_budget_spent || 0, remaining: team.allrounder_budget_remaining || 0, max: CPL_2026.advisoryCategorySpend['All-rounder'], min: CPL_CATEGORY_BUDGETS['All-rounder'].min, minPlayers: CPL_CATEGORY_BUDGETS['All-rounder'].minPlayers, maxPlayers: CPL_CATEGORY_BUDGETS['All-rounder'].maxPlayers },
+            'WicketKeeper': { spent: team.wicketkeeper_budget_spent || 0, remaining: team.wicketkeeper_budget_remaining || 0, max: CPL_2026.advisoryCategorySpend['WicketKeeper'], min: CPL_CATEGORY_BUDGETS['WicketKeeper'].min, minPlayers: CPL_CATEGORY_BUDGETS['WicketKeeper'].minPlayers, maxPlayers: CPL_CATEGORY_BUDGETS['WicketKeeper'].maxPlayers }
+          }
+        };
+      });
+
+      // Populate each team's squad from the players table. Without this, squads
+      // are empty on every page load and pre-auction players never appear.
+      players.forEach(player => {
+        const isOnATeam = player.Status === 'Sold' || player.Status === 'PreAuction';
+        if (!isOnATeam || !player.SoldTo) return;
+
+        const team = teams[player.SoldTo];
+        if (!team) return;
+
+        team.squad.push({ ...player, BidPrice: player.SoldPrice || 0 });
+        if (team.roleCount[player.Role] !== undefined) {
+          team.roleCount[player.Role] += 1;
+        }
+      });
 
       return { players, teams };
 
@@ -170,43 +196,66 @@ class SupabaseAuctionService {
     }
   }
 
+  /** player_id values currently locked into a team's pre-auction five. */
+  async getPreAuctionPlayerIds() {
+    const { data, error } = await supabase
+      .from('players')
+      .select('player_id')
+      .eq('status', 'PreAuction');
+
+    if (error) throw error;
+    return (data || []).map(row => row.player_id);
+  }
+
   // Upload Excel data to Supabase (clear and insert)
   async uploadExcelData(players, teams) {
     try {
-      console.log('Uploading Excel data to Supabase:', { 
-        playersCount: players.length, 
-        teamsCount: teams.length 
+      console.log('Uploading Excel data to Supabase:', {
+        playersCount: players.length,
+        teamsCount: teams.length
       });
 
-      // Clear existing data (optional - remove if you want to keep existing data)
-      await supabase.from('players').delete().neq('id', 0);
-      await supabase.from('teams').delete().neq('id', 0);
+      // Never delete players locked into a team's pre-auction five, and never
+      // delete the teams they belong to.
+      const lockedIds = await this.getPreAuctionPlayerIds();
 
-      // Insert teams
+      if (lockedIds.length > 0) {
+        await supabase.from('players').delete().or('status.is.null,status.neq.PreAuction');
+      } else {
+        await supabase.from('players').delete().neq('id', 0);
+        await supabase.from('teams').delete().neq('id', 0);
+      }
+
+      // Upsert, not insert: teams survive when pre-auction squads are loaded.
       const { error: teamsError } = await supabase
         .from('teams')
-        .insert(teams.map(team => ({
+        .upsert(teams.map(team => ({
           team_id: team.TeamID,
           team_name: team.TeamName,
           logo_file: team.LogoFile || null,
-          max_tokens: 1200,
-          max_squad_size: 16,
-          tokens_left: 1200,
-          batsman_budget_remaining: 350,
-          bowler_budget_remaining: 300,
-          allrounder_budget_remaining: 350,
-          wicketkeeper_budget_remaining: 200
-        })));
+          max_tokens: CPL_2026.auctionBudget,
+          max_squad_size: CPL_2026.defaultSquadSize,
+          tokens_left: CPL_2026.auctionBudget,
+          batsman_budget_remaining: CPL_2026.advisoryCategorySpend['Batsman'],
+          bowler_budget_remaining: CPL_2026.advisoryCategorySpend['Bowler'],
+          allrounder_budget_remaining: CPL_2026.advisoryCategorySpend['All-rounder'],
+          wicketkeeper_budget_remaining: CPL_2026.advisoryCategorySpend['WicketKeeper']
+        })), { onConflict: 'team_id', ignoreDuplicates: false });
 
       if (teamsError) {
         console.error('Teams insert error:', teamsError);
         throw teamsError;
       }
 
-      // Insert players
+      // Insert players, holding back anyone already locked in pre-auction.
+      const { safeToWrite, skipped } = splitOutPreAuctionPlayers(players, lockedIds);
+      if (skipped.length > 0) {
+        console.log(`Skipped ${skipped.length} pre-auction players:`, skipped);
+      }
+
       const { error: playersError } = await supabase
         .from('players')
-        .insert(players.map((player, index) => ({
+        .insert(safeToWrite.map((player, index) => ({
           player_id: player.PlayerID,
           name: player.Name,
           role: player.Role,
@@ -228,7 +277,9 @@ class SupabaseAuctionService {
 
       return {
         success: true,
-        message: `Successfully uploaded ${players.length} players and ${teams.length} teams`
+        message: skipped.length > 0
+          ? `Uploaded ${safeToWrite.length} players and ${teams.length} teams (${skipped.length} pre-auction players preserved)`
+          : `Successfully uploaded ${players.length} players and ${teams.length} teams`
       };
 
     } catch (error) {
@@ -255,14 +306,13 @@ class SupabaseAuctionService {
           team_id: team.TeamID,
           team_name: team.TeamName,
           logo_file: team.LogoFile || null,
-          max_tokens: 1200,
-          max_squad_size: 16,
-          // Only set initial values if not already set
-          tokens_left: 1200,
-          batsman_budget_remaining: 350,
-          bowler_budget_remaining: 300,
-          allrounder_budget_remaining: 350,
-          wicketkeeper_budget_remaining: 200
+          max_tokens: CPL_2026.auctionBudget,
+          max_squad_size: CPL_2026.defaultSquadSize,
+          tokens_left: CPL_2026.auctionBudget,
+          batsman_budget_remaining: CPL_2026.advisoryCategorySpend['Batsman'],
+          bowler_budget_remaining: CPL_2026.advisoryCategorySpend['Bowler'],
+          allrounder_budget_remaining: CPL_2026.advisoryCategorySpend['All-rounder'],
+          wicketkeeper_budget_remaining: CPL_2026.advisoryCategorySpend['WicketKeeper']
         })), {
           onConflict: 'team_id',
           ignoreDuplicates: false
@@ -273,10 +323,16 @@ class SupabaseAuctionService {
         throw teamsError;
       }
 
-      // 2. Upsert players (insert or update)
+      // 2. Upsert players, holding back anyone already locked in pre-auction.
+      const lockedIds = await this.getPreAuctionPlayerIds();
+      const { safeToWrite, skipped } = splitOutPreAuctionPlayers(players, lockedIds);
+      if (skipped.length > 0) {
+        console.log(`Skipped ${skipped.length} pre-auction players:`, skipped);
+      }
+
       const { error: playersError } = await supabase
         .from('players')
-        .upsert(players.map((player, index) => ({
+        .upsert(safeToWrite.map((player, index) => ({
           player_id: player.PlayerID,
           name: player.Name,
           role: player.Role,
@@ -302,9 +358,10 @@ class SupabaseAuctionService {
 
       return {
         success: true,
-        playersProcessed: players.length,
+        playersProcessed: safeToWrite.length,
         teamsProcessed: teams.length,
-        message: `Successfully merged ${players.length} players and ${teams.length} teams`
+        message: `Merged ${safeToWrite.length} players and ${teams.length} teams` +
+          (skipped.length > 0 ? ` (${skipped.length} pre-auction players preserved)` : '')
       };
 
     } catch (error) {
@@ -313,6 +370,101 @@ class SupabaseAuctionService {
         success: false,
         error: error.message
       };
+    }
+  }
+
+  /**
+   * Writes a validated pre-auction workbook.
+   *
+   * Teams are upserted first so the players' sold_to values always point at a
+   * team that exists. Callers MUST have run validatePreAuctionUpload first —
+   * this method does not re-validate.
+   */
+  async uploadPreAuctionSquads(teamRows, normalizedPlayers) {
+    try {
+      const submittedAt = new Date().toISOString();
+
+      const { error: teamsError } = await supabase
+        .from('teams')
+        .upsert(teamRows.map(team => ({
+          team_id: team.TeamID,
+          team_name: team.TeamName,
+          logo_file: team.LogoFile || null,
+          max_tokens: CPL_2026.auctionBudget,
+          tokens_left: CPL_2026.auctionBudget,
+          max_squad_size: CPL_2026.defaultSquadSize,
+          // Advisory display figures only — never enforced. Seeded here so the
+          // category panels agree with the config instead of the stale schema
+          // defaults (400/400/200/150).
+          batsman_budget_spent: 0,
+          batsman_budget_remaining: CPL_2026.advisoryCategorySpend['Batsman'],
+          bowler_budget_spent: 0,
+          bowler_budget_remaining: CPL_2026.advisoryCategorySpend['Bowler'],
+          allrounder_budget_spent: 0,
+          allrounder_budget_remaining: CPL_2026.advisoryCategorySpend['All-rounder'],
+          wicketkeeper_budget_spent: 0,
+          wicketkeeper_budget_remaining: CPL_2026.advisoryCategorySpend['WicketKeeper'],
+          batsman_count: 0,
+          bowler_count: 0,
+          allrounder_count: 0,
+          wicketkeeper_count: 0,
+          pre_auction_submitted: true,
+          pre_auction_submitted_at: submittedAt
+        })), { onConflict: 'team_id', ignoreDuplicates: false });
+
+      if (teamsError) throw teamsError;
+
+      const { error: playersError } = await supabase
+        .from('players')
+        .upsert(normalizedPlayers, { onConflict: 'player_id', ignoreDuplicates: false });
+
+      if (playersError) throw playersError;
+
+      return {
+        success: true,
+        message: `Loaded ${normalizedPlayers.length} pre-auction players across ${teamRows.length} teams`
+      };
+    } catch (error) {
+      console.error('Error uploading pre-auction squads:', error);
+      return { success: false, error: error.message };
+    }
+  }
+
+  /**
+   * Unlocks a team so its five can be re-uploaded.
+   *
+   * Releases the team's pre-auction players back to the auction pool. A player
+   * dropped from the re-uploaded sheet therefore stays in the database and
+   * becomes available for bidding, which is the intended outcome.
+   */
+  async reopenTeam(teamName) {
+    try {
+      const { error: playersError } = await supabase
+        .from('players')
+        .update({
+          status: 'Available',
+          sold_to: null,
+          sold_price: 0,
+          pre_auction_role: null,
+          is_captain: false,
+          is_vice_captain: false
+        })
+        .eq('sold_to', teamName)
+        .eq('status', 'PreAuction');
+
+      if (playersError) throw playersError;
+
+      const { error: teamError } = await supabase
+        .from('teams')
+        .update({ pre_auction_submitted: false, pre_auction_submitted_at: null })
+        .eq('team_name', teamName);
+
+      if (teamError) throw teamError;
+
+      return { success: true };
+    } catch (error) {
+      console.error('Error reopening team:', error);
+      return { success: false, error: error.message };
     }
   }
 

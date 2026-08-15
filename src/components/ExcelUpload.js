@@ -2,11 +2,14 @@ import React, { useState } from 'react';
 import { Upload, FileSpreadsheet, AlertCircle } from 'lucide-react';
 import * as XLSX from 'xlsx';
 import { supabaseAuctionService } from '../services/supabaseService';
+import { validatePreAuctionUpload, normalizePreAuctionRows } from '../utils/preAuctionRules';
 import toast from 'react-hot-toast';
 
-const ExcelUpload = ({ onDataLoaded }) => {
+const ExcelUpload = ({ onDataLoaded, mode = 'players' }) => {
+  const isPreAuction = mode === 'preauction';
   const [uploading, setUploading] = useState(false);
   const [dragActive, setDragActive] = useState(false);
+  const [validationErrors, setValidationErrors] = useState([]);
 
   const processExcelFile = async (file) => {
     return new Promise((resolve, reject) => {
@@ -77,11 +80,86 @@ const ExcelUpload = ({ onDataLoaded }) => {
     });
   };
 
+  const processPreAuctionFile = async (file) => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+
+      reader.onload = (e) => {
+        try {
+          const workbook = XLSX.read(new Uint8Array(e.target.result), { type: 'array' });
+
+          if (!workbook.SheetNames.includes('Teams')) {
+            throw new Error("Workbook must contain a sheet named 'Teams'.");
+          }
+          if (!workbook.SheetNames.includes('PreAuction')) {
+            throw new Error("Workbook must contain a sheet named 'PreAuction'.");
+          }
+
+          const teamRows = XLSX.utils.sheet_to_json(workbook.Sheets['Teams']);
+          const playerRows = XLSX.utils.sheet_to_json(workbook.Sheets['PreAuction']);
+
+          resolve({ teamRows, playerRows });
+        } catch (error) {
+          reject(error);
+        }
+      };
+
+      reader.onerror = () => reject(new Error('Failed to read file'));
+      reader.readAsArrayBuffer(file);
+    });
+  };
+
+  const handlePreAuctionUpload = async (file) => {
+    setUploading(true);
+    const uploadToast = toast.loading('Reading pre-auction workbook...');
+
+    try {
+      const { teamRows, playerRows } = await processPreAuctionFile(file);
+
+      const { valid, errors, warnings } = validatePreAuctionUpload(teamRows, playerRows);
+
+      if (!valid) {
+        // Nothing is written when validation fails — a partial write would
+        // leave some teams locked and others not.
+        toast.dismiss(uploadToast);
+        setValidationErrors(errors);
+        toast.error(`${errors.length} problem(s) found. Nothing was uploaded.`, { duration: 6000 });
+        return;
+      }
+
+      setValidationErrors([]);
+      toast.loading('Uploading pre-auction squads...', { id: uploadToast });
+
+      const result = await supabaseAuctionService.uploadPreAuctionSquads(
+        teamRows,
+        normalizePreAuctionRows(playerRows)
+      );
+
+      if (!result.success) throw new Error(result.error);
+
+      toast.success(result.message, { id: uploadToast, duration: 4000 });
+
+      warnings.forEach(w => toast(w, { icon: '⚠️', duration: 6000 }));
+
+      if (onDataLoaded) onDataLoaded();
+    } catch (error) {
+      console.error('Error uploading pre-auction file:', error);
+      toast.error(`Upload failed: ${error.message}`, { id: uploadToast });
+    } finally {
+      setUploading(false);
+    }
+  };
+
   const handleFileUpload = async (file) => {
     if (!file) return;
 
     if (!file.name.match(/\.(xlsx|xls)$/)) {
       toast.error('Please upload an Excel file (.xlsx or .xls)');
+      return;
+    }
+
+    if (isPreAuction) {
+      await handlePreAuctionUpload(file);
       return;
     }
 
@@ -164,7 +242,9 @@ const ExcelUpload = ({ onDataLoaded }) => {
           
           <div>
             <h3 className="text-lg font-semibold text-gray-800 mb-2">
-              {uploading ? 'Processing Excel File...' : 'Upload Excel Data'}
+              {uploading
+                ? 'Processing Excel File...'
+                : isPreAuction ? 'Upload Pre-Auction Squads' : 'Upload Excel Data'}
             </h3>
             <p className="text-gray-600 mb-4">
               Drag and drop your Excel file here, or click to browse
@@ -192,18 +272,42 @@ const ExcelUpload = ({ onDataLoaded }) => {
         </div>
       </div>
 
+      {/* Validation errors — pre-auction mode only */}
+      {validationErrors.length > 0 && (
+        <div className="mt-4 bg-red-50 border border-red-200 rounded-lg p-4">
+          <h4 className="font-semibold text-red-800 mb-2 flex items-center gap-2">
+            <AlertCircle size={16} />
+            {validationErrors.length} problem(s) — nothing was uploaded
+          </h4>
+          <ul className="text-sm text-red-700 space-y-1 max-h-64 overflow-y-auto list-disc list-inside">
+            {validationErrors.map((err, i) => <li key={i}>{err}</li>)}
+          </ul>
+        </div>
+      )}
+
       {/* File Requirements */}
       <div className="mt-4 bg-blue-50 border border-blue-200 rounded-lg p-4">
         <h4 className="font-semibold text-blue-800 mb-2 flex items-center gap-2">
           <AlertCircle size={16} />
           Excel File Requirements
         </h4>
-        <div className="text-sm text-blue-700 space-y-1">
-          <p><strong>Sheet 1 - Players:</strong> PlayerID, Name, Role, BaseTokens, PhotoFileName (optional), Department (optional)</p>
-          <p><strong>Sheet 2 - Teams:</strong> TeamID, TeamName, LogoFile (optional)</p>
-          <p><strong>Supported Roles:</strong> Batsman, Bowler, All-rounder, WicketKeeper</p>
-          <p><strong>Note:</strong> Existing auction data will be preserved when merging new player/team information</p>
-        </div>
+        {isPreAuction ? (
+          <div className="text-sm text-blue-700 space-y-1">
+            <p><strong>Sheet "Teams":</strong> TeamID, TeamName, LogoFile</p>
+            <p><strong>Sheet "PreAuction":</strong> TeamName, PlayerID, Name, Role, BaseTokens, PreAuctionRole, Availability (optional), PhotoFileName (optional), Department (optional)</p>
+            <p><strong>PreAuctionRole:</strong> Captain, ViceCaptain, Squad — exactly 1 Captain, 1 ViceCaptain and 3 Squad per team</p>
+            <p><strong>Supported Roles:</strong> Batsman, Bowler, All-rounder, WicketKeeper</p>
+            <p><strong>Note:</strong> The whole workbook is validated before anything is written. These five players cost no coins.</p>
+            <p>Generate a blank template with <code>node scripts/create_pre_auction_template.js</code></p>
+          </div>
+        ) : (
+          <div className="text-sm text-blue-700 space-y-1">
+            <p><strong>Sheet 1 - Players:</strong> PlayerID, Name, Role, BaseTokens, PhotoFileName (optional), Department (optional)</p>
+            <p><strong>Sheet 2 - Teams:</strong> TeamID, TeamName, LogoFile (optional)</p>
+            <p><strong>Supported Roles:</strong> Batsman, Bowler, All-rounder, WicketKeeper</p>
+            <p><strong>Note:</strong> Players already locked in as pre-auction picks are never overwritten</p>
+          </div>
+        )}
       </div>
     </div>
   );
