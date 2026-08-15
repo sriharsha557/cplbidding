@@ -216,7 +216,7 @@ class SupabaseAuctionService {
       const lockedIds = await this.getPreAuctionPlayerIds();
 
       if (lockedIds.length > 0) {
-        await supabase.from('players').delete().neq('status', 'PreAuction');
+        await supabase.from('players').delete().or('status.is.null,status.neq.PreAuction');
       } else {
         await supabase.from('players').delete().neq('id', 0);
         await supabase.from('teams').delete().neq('id', 0);
@@ -229,13 +229,13 @@ class SupabaseAuctionService {
           team_id: team.TeamID,
           team_name: team.TeamName,
           logo_file: team.LogoFile || null,
-          max_tokens: 1200,
-          max_squad_size: 16,
-          tokens_left: 1200,
-          batsman_budget_remaining: 350,
-          bowler_budget_remaining: 300,
-          allrounder_budget_remaining: 350,
-          wicketkeeper_budget_remaining: 200
+          max_tokens: CPL_2026.auctionBudget,
+          max_squad_size: CPL_2026.defaultSquadSize,
+          tokens_left: CPL_2026.auctionBudget,
+          batsman_budget_remaining: CPL_2026.advisoryCategorySpend['Batsman'],
+          bowler_budget_remaining: CPL_2026.advisoryCategorySpend['Bowler'],
+          allrounder_budget_remaining: CPL_2026.advisoryCategorySpend['All-rounder'],
+          wicketkeeper_budget_remaining: CPL_2026.advisoryCategorySpend['WicketKeeper']
         })), { onConflict: 'team_id', ignoreDuplicates: false });
 
       if (teamsError) {
@@ -302,14 +302,14 @@ class SupabaseAuctionService {
           team_id: team.TeamID,
           team_name: team.TeamName,
           logo_file: team.LogoFile || null,
-          max_tokens: 1200,
-          max_squad_size: 16,
+          max_tokens: CPL_2026.auctionBudget,
+          max_squad_size: CPL_2026.defaultSquadSize,
           // Only set initial values if not already set
-          tokens_left: 1200,
-          batsman_budget_remaining: 350,
-          bowler_budget_remaining: 300,
-          allrounder_budget_remaining: 350,
-          wicketkeeper_budget_remaining: 200
+          tokens_left: CPL_2026.auctionBudget,
+          batsman_budget_remaining: CPL_2026.advisoryCategorySpend['Batsman'],
+          bowler_budget_remaining: CPL_2026.advisoryCategorySpend['Bowler'],
+          allrounder_budget_remaining: CPL_2026.advisoryCategorySpend['All-rounder'],
+          wicketkeeper_budget_remaining: CPL_2026.advisoryCategorySpend['WicketKeeper']
         })), {
           onConflict: 'team_id',
           ignoreDuplicates: false
