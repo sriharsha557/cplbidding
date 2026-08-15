@@ -60,3 +60,12 @@ CREATE UNIQUE INDEX IF NOT EXISTS one_vc_per_team
 -- 5. Default team budget for 2026
 ALTER TABLE teams ALTER COLUMN max_tokens SET DEFAULT 1000;
 ALTER TABLE teams ALTER COLUMN tokens_left SET DEFAULT 1000;
+
+-- 6. sold_to holds a TEAM NAME, not a team id. The base schema declares it
+--    VARCHAR(10), which is too narrow for "Fearless Falcons" and
+--    "Quality Strikers" (16 chars each). sql/fix_column_lengths.sql widens it
+--    to VARCHAR(50), but there is no way to confirm that was ever applied to
+--    this database, and a narrow column would fail on the first real upload.
+--    Widening is safe whether or not it has already happened.
+ALTER TABLE players ALTER COLUMN sold_to TYPE VARCHAR(100);
+ALTER TABLE players ALTER COLUMN status TYPE VARCHAR(20);
