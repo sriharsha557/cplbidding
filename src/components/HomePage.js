@@ -83,7 +83,13 @@ function HomePage({ auctionState }) {
           />
           <div className="cpl-hero__topline">
             <span>Colruyt Group presents</span>
-            <span className="cpl-season">Season 2026</span>
+            <span className="cpl-hero__topline-right">
+              <span className="cpl-season">Season 2026</span>
+              <span className={`cpl-live-pill ${auctionStarted ? '' : 'cpl-live-pill--waiting'}`}>
+                <i />
+                {auctionStarted ? 'Live updates' : 'Awaiting auction start'}
+              </span>
+            </span>
           </div>
           <div className="cpl-title-row">
             <div>
@@ -94,10 +100,6 @@ function HomePage({ auctionState }) {
                   ? 'Every bid. Every squad. Live as it happens.'
                   : 'The squad-building room for the 2026 season.'}
               </p>
-            </div>
-            <div className={`cpl-live-pill ${auctionStarted ? '' : 'cpl-live-pill--waiting'}`}>
-              <i />
-              {auctionStarted ? 'Live updates' : 'Awaiting auction start'}
             </div>
           </div>
 

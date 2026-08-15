@@ -36,7 +36,7 @@ const AdminPage = ({
   const [adminPassword, setAdminPassword] = useState('');
 
   // Simple admin authentication (you can enhance this)
-  const ADMIN_PASSWORD = 'admin123'; // Temporary client-side access check; replace with server-side authentication.
+  const ADMIN_PASSWORD = 'CPL@2026'; // Temporary client-side access check; replace with server-side authentication.
 
   const handleAdminLogin = () => {
     if (adminPassword === ADMIN_PASSWORD) {
