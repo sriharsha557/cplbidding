@@ -1,3 +1,5 @@
+import { CPL_2026 } from '../config/cpl2026';
+
 // Role order for auction - CPL Category-based bidding
 export const ROLE_ORDER = ['Batsman', 'Bowler', 'All-rounder', 'WicketKeeper'];
 
@@ -49,7 +51,7 @@ export const CPL_CATEGORY_BUDGETS = {
 };
 
 // Total team budget - increased for more competitive bidding
-export const TOTAL_TEAM_BUDGET = 1200;
+export const TOTAL_TEAM_BUDGET = CPL_2026.auctionBudget;
 
 // Sort players by role order, then by base tokens (descending)
 export const sortPlayersByAuctionOrder = (players) => {

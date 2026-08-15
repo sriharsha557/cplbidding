@@ -9,6 +9,7 @@ import { auctionService } from './services/auctionService';
 import { supabaseAuctionService } from './services/supabaseService';
 
 import { sortPlayersByAuctionOrder, playSound } from './utils/auctionUtils';
+import { CPL_2026 } from './config/cpl2026';
 
 
 
@@ -21,7 +22,7 @@ function App() {
     teams: {},
     auctionHistory: [],
     unsoldPlayers: [],
-    maxTokens: 1200, // Updated to new budget
+    maxTokens: CPL_2026.auctionBudget,
     maxSquadSize: 15
   });
 
@@ -176,7 +177,7 @@ function App() {
           teams: {},
           auctionHistory: [],
           unsoldPlayers: [],
-          maxTokens: 1000,
+          maxTokens: CPL_2026.auctionBudget,
           maxSquadSize: 15
         });
 
