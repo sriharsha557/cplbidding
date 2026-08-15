@@ -29,8 +29,12 @@ export function validatePreAuctionUpload(teamRows, playerRows) {
   }
   if (errors.length > 0) return { valid: false, errors, warnings };
 
-  const teamNames = teamRows.map(t => t.TeamName).filter(Boolean);
+  const teamNames = teamRows.filter(Boolean).map(t => t.TeamName).filter(Boolean);
   teamRows.forEach((team, i) => {
+    if (!team) {
+      errors.push(`Teams row ${i + 2}: row is empty or malformed.`);
+      return;
+    }
     if (!team.TeamID) errors.push(`Teams row ${i + 2}: missing TeamID.`);
     if (!team.TeamName) errors.push(`Teams row ${i + 2}: missing TeamName.`);
   });
@@ -39,6 +43,11 @@ export function validatePreAuctionUpload(teamRows, playerRows) {
   const seenIds = new Map();
   playerRows.forEach((row, i) => {
     const line = `PreAuction row ${i + 2}`;
+
+    if (!row) {
+      errors.push(`${line}: row is empty or malformed.`);
+      return;
+    }
 
     REQUIRED_PLAYER_COLUMNS.forEach(col => {
       const value = row[col];
@@ -79,7 +88,7 @@ export function validatePreAuctionUpload(teamRows, playerRows) {
   // Per-team slot counts.
   const { captain, viceCaptain, retainedOrTraded, total } = CPL_2026.preAuctionSlots;
   teamNames.forEach(teamName => {
-    const squad = playerRows.filter(r => r.TeamName === teamName);
+    const squad = playerRows.filter(r => r && r.TeamName === teamName);
     const count = role => squad.filter(r => r.PreAuctionRole === role).length;
 
     if (squad.length !== total) {

@@ -113,6 +113,23 @@ test('normalize maps a Captain row to database columns', () => {
   });
 });
 
+test('a null entry in teamRows is reported instead of throwing', () => {
+  const rows = [teams[0], null, teams[1]];
+  expect(() => validatePreAuctionUpload(rows, bothTeams())).not.toThrow();
+  const result = validatePreAuctionUpload(rows, bothTeams());
+  expect(result.valid).toBe(false);
+  expect(result.errors.join(' ')).toMatch(/Teams row 3/);
+});
+
+test('a null entry in playerRows is reported instead of throwing', () => {
+  const rows = bothTeams();
+  rows.splice(3, 0, null);
+  expect(() => validatePreAuctionUpload(teams, rows)).not.toThrow();
+  const result = validatePreAuctionUpload(teams, rows);
+  expect(result.valid).toBe(false);
+  expect(result.errors.join(' ')).toMatch(/PreAuction row 5/);
+});
+
 test('normalize defaults availability to Unknown and mirrors ViceCaptain', () => {
   const source = five('Avengers', 'AV')[1];
   delete source.Availability;
