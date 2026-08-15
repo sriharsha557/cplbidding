@@ -4,6 +4,7 @@ import toast from 'react-hot-toast';
 import HomePage from './components/HomePage';
 import AdminPage from './components/AdminPage';
 import { NotificationProvider } from './components/NotificationSystem';
+import CplWordmark from './components/CplWordmark';
 
 import { auctionService } from './services/auctionService';
 import { supabaseAuctionService } from './services/supabaseService';
@@ -385,13 +386,9 @@ function App() {
               display:'flex', alignItems:'center', justifyContent:'center',
               color:'#A9770F', fontFamily:'Anton, sans-serif', fontSize:14
             }}>C</div>
-            <img
-              src="/cpl.png" alt="CPL"
-              style={{ height:26, width:'auto' }}
-              onError={e => { e.target.style.display='none'; }}
-            />
-            <span style={{ fontSize:15, fontWeight:600, color:'#1B2A22', letterSpacing:'0.02em' }}>
-              CPL Auction 2026
+            <CplWordmark size="sm" tone="light" />
+            <span style={{ fontSize:13, fontWeight:600, color:'#4E6156', letterSpacing:'0.02em' }}>
+              Auction
             </span>
           </div>
 

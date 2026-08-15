@@ -13,6 +13,7 @@ import AuctionProgress from './AuctionProgress';
 import PlayerValuation from './PlayerValuation';
 import DataCleanup from './DataCleanup';
 import PreAuctionReview from './PreAuctionReview';
+import CplWordmark from './CplWordmark';
 
 import { ROLE_EMOJIS } from '../utils/auctionUtils';
 import { exportAuctionResults } from '../utils/excelExport';
@@ -133,15 +134,7 @@ const AdminPage = ({
           className="text-center mb-8"
         >
           <div className="flex justify-center mb-4">
-            <motion.img 
-              src="/cpl.png" 
-              alt="CPL Logo" 
-              className="h-24 w-auto"
-              whileHover={{ scale: 1.05 }}
-              onError={(e) => {
-                e.target.style.display = 'none';
-              }}
-            />
+            <CplWordmark size="lg" tone="dark" />
           </div>
           <h1 className="text-4xl md:text-5xl font-bold text-white mb-2">CPL Admin Panel</h1>
           <p className="text-gray-300 text-lg flex items-center justify-center gap-2">
