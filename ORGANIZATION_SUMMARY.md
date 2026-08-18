@@ -37,7 +37,7 @@ Your CPL Auction project has been reorganized for better maintainability.
 Only essential files remain in root:
 - ✅ `cplbidding.py` - Streamlit app
 - ✅ `package.json` - Node dependencies
-- ✅ `requirements.txt` - Python dependencies
+- ✅ `requirements-dev.txt` - Python dependencies (local scripts only, not installed on deploy)
 - ✅ Configuration files (.env, .gitignore, etc.)
 - ✅ `PROJECT_STRUCTURE.md` - Structure guide
 

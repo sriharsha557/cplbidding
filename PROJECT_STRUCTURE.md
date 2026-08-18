@@ -46,7 +46,7 @@ cplbidding/
 │
 ├── cplbidding.py              # Streamlit Python app
 ├── package.json               # Node dependencies
-├── requirements.txt           # Python dependencies
+├── requirements-dev.txt       # Python deps for local scripts (not deployed)
 └── README.md                  # Main project README
 ```
 
