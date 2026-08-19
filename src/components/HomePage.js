@@ -4,6 +4,7 @@ import { getCurrentAuctionPhase, ROLE_EMOJIS } from '../utils/auctionUtils';
 import TeamDashboard from './TeamDashboard';
 import CategoryProgress from './CategoryProgress';
 import AuctionProgress from './AuctionProgress';
+import PreAuctionShowcase from './preauction/PreAuctionShowcase';
 
 const tabs = [
   { id: 'overview', label: 'Overview' },
@@ -144,6 +145,8 @@ function HomePage({ auctionState }) {
                 <div className="cpl-waiting-card__meta">Public viewing page<br />Refreshes automatically</div>
               </section>
             )}
+
+            {!auctionStarted && <PreAuctionShowcase />}
 
             {auctionStarted && activeView === 'overview' && (
               <>

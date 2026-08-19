@@ -136,3 +136,58 @@ body {
 .cpl-footer { border-top: 1px solid #dfdfd7; color: #849096; font-size: 11px; font-weight: 700; letter-spacing: .07em; text-transform: uppercase; }.cpl-footer > div { display: flex; justify-content: space-between; gap: 16px; padding: 20px 0; }
 @media (max-width: 700px) { .cpl-container { width: min(100% - 32px, 1120px); }.cpl-hero__content { padding: 26px 0 34px; }.cpl-hero__trophy { right: -54px; bottom: 190px; width: 190px; max-height: 210px; opacity: .5; }.cpl-title-row { display: block; margin: 42px 0 30px; }.cpl-hero__topline { flex-wrap: wrap; gap: 10px; }.cpl-hero__topline-right { gap: 10px; }.cpl-season-note { align-items: flex-start; }.cpl-season-note__date { min-width: 60px; }.cpl-scoreboard { grid-template-columns: repeat(2, 1fr); }.cpl-stat { padding: 17px; }.cpl-stat:nth-child(2) { border-right: 0; }.cpl-stat:nth-child(-n+2) { border-bottom: 1px solid rgba(232,245,239,.14); }.cpl-waiting-card { grid-template-columns: 1fr; gap: 18px; padding: 30px; }.cpl-waiting-card__meta { text-align: left; }.cpl-player-card { grid-template-columns: 1fr; }.cpl-player-card__image-wrap { min-height: 320px; max-height: 400px; }.cpl-player-card__body, .cpl-panel { padding: 28px 22px; }.cpl-player-card__status { top: 12px; right: 12px; }.cpl-complete-card { padding: 40px 22px; }.cpl-complete-card__stats { grid-template-columns: 1fr; }.cpl-complete-card__stats .cpl-stat { border-right: 0; border-bottom: 1px solid #e6e4dd; }.cpl-leaderboard__row { grid-template-columns: 36px 1fr; }.cpl-leaderboard__row > div:nth-last-child(-n+2) { text-align: left; padding-left: 36px; }.cpl-footer > div { flex-wrap: wrap; } }
 @media (prefers-reduced-motion: reduce) { .cpl-hero__trophy { animation: none; } }
+
+/* --- Pre-auction public sections (shown until the auction starts) --- */
+.cpl-preauction { display: grid; gap: 24px; margin-top: 24px; }
+.cpl-preauction-panel { padding: 34px; }
+
+.cpl-team-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 18px; }
+.cpl-team-card { position: relative; display: flex; flex-direction: column; align-items: center; gap: 14px; padding: 26px 16px 22px; border: 1px solid #e6e4dd; border-radius: 10px; background: #fcfbf7; text-align: center; transition: transform .2s ease, box-shadow .2s ease; }
+.cpl-team-card:hover { transform: translateY(-3px); box-shadow: 0 14px 28px rgba(23,61,73,.12); }
+.cpl-team-card h3 { margin: 0; font-size: 15px; font-weight: 800; letter-spacing: .02em; color: #173d49; }
+.cpl-team-card__crest { display: grid; place-items: center; width: 84px; height: 84px; border-radius: 50%; background: #fff; border: 1px solid #e6e4dd; overflow: hidden; }
+.cpl-team-card__crest img { width: 100%; height: 100%; object-fit: contain; padding: 8px; }
+.cpl-team-card__initials { font-family: Georgia, serif; font-size: 26px; font-weight: 700; color: #b4791a; }
+.cpl-team-card--champion { border-color: #f1c566; background: linear-gradient(165deg, #fffdf6, #fdf4dd); box-shadow: 0 10px 26px rgba(241,197,102,.26); }
+.cpl-team-card--champion .cpl-team-card__crest { border-color: #f1c566; }
+.cpl-team-card__badge { position: absolute; top: -11px; left: 50%; transform: translateX(-50%); white-space: nowrap; padding: 4px 11px; border-radius: 999px; background: #173d49; color: #f1c566; font-size: 10px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; }
+
+.cpl-deadline-pill { flex-shrink: 0; padding: 6px 14px; border-radius: 999px; background: rgba(241,197,102,.22); color: #8a5c12; font-size: 12px; font-weight: 800; letter-spacing: .04em; }
+.cpl-deadline-pill--closed { background: rgba(101,114,122,.14); color: #65727a; }
+
+.cpl-ownership-bar { margin-bottom: 28px; padding: 18px 20px; border: 1px solid #e6e4dd; border-radius: 10px; background: #fcfbf7; }
+.cpl-ownership-bar__meta { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 8px; margin-bottom: 12px; }
+.cpl-ownership-bar__meta strong { color: #173d49; font-size: 15px; }
+.cpl-ownership-bar__meta span { color: #65727a; font-size: 13px; }
+.cpl-ownership-bar__track { height: 8px; border-radius: 999px; background: #e6e4dd; overflow: hidden; }
+.cpl-ownership-bar__track i { display: block; height: 100%; border-radius: 999px; background: linear-gradient(90deg, #f1c566, #b4791a); }
+
+.cpl-roadmap { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin: 0; padding: 0; list-style: none; }
+.cpl-roadmap__step { display: flex; align-items: flex-start; gap: 12px; padding: 16px; border: 1px solid #e6e4dd; border-radius: 10px; background: #fff; }
+.cpl-roadmap__step strong { display: block; color: #173d49; font-size: 14px; }
+.cpl-roadmap__step small { display: block; margin-top: 3px; color: #65727a; font-size: 12px; line-height: 1.5; }
+.cpl-roadmap__marker { display: grid; place-items: center; flex-shrink: 0; width: 26px; height: 26px; border-radius: 50%; background: #e6e4dd; color: #65727a; font-size: 12px; font-weight: 800; }
+.cpl-roadmap__step--done .cpl-roadmap__marker { background: #173d49; color: #f1c566; }
+.cpl-roadmap__step--active { border-color: #f1c566; background: linear-gradient(165deg, #fffdf6, #fdf4dd); }
+.cpl-roadmap__step--active .cpl-roadmap__marker { background: #f1c566; color: #173d49; }
+.cpl-roadmap__step--next { opacity: .78; }
+
+.cpl-format__intro { max-width: 720px; margin: 0 0 22px; color: #65727a; line-height: 1.65; }
+.cpl-format__stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1px; margin-bottom: 24px; background: #e6e4dd; border: 1px solid #e6e4dd; border-radius: 10px; overflow: hidden; }
+.cpl-format__stat { padding: 18px 16px; background: #fff; }
+.cpl-format__stat strong { display: block; color: #173d49; font-family: Georgia, serif; font-size: 28px; line-height: 1.1; }
+.cpl-format__stat span { display: block; margin-top: 5px; color: #849096; font-size: 12px; }
+.cpl-format__bids ul { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin: 0 0 12px; padding: 0; list-style: none; }
+.cpl-format__bids li { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 12px 14px; border: 1px solid #e6e4dd; border-radius: 8px; background: #fcfbf7; }
+.cpl-format__bids li span { color: #65727a; font-size: 13px; }
+.cpl-format__bids li strong { color: #b4791a; font-size: 17px; }
+.cpl-format__bids small { color: #849096; font-size: 12px; }
+
+@media (max-width: 900px) {
+  .cpl-team-grid, .cpl-format__stats, .cpl-format__bids ul { grid-template-columns: repeat(2, 1fr); }
+  .cpl-roadmap { grid-template-columns: repeat(2, 1fr); }
+  .cpl-preauction-panel { padding: 24px 18px; }
+}
+@media (max-width: 560px) {
+  .cpl-roadmap, .cpl-format__bids ul { grid-template-columns: 1fr; }
+}
