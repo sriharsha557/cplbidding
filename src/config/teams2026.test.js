@@ -1,4 +1,4 @@
-import { TEAMS_2026, OWNERSHIP, daysUntilDeadline, ownershipProgress } from './teams2026';
+import { TEAMS_2026, OWNERSHIP, AUCTION_POOL_SIZE, daysUntilDeadline, ownershipProgress } from './teams2026';
 
 describe('TEAMS_2026', () => {
   it('has all eight teams with unique ids and names', () => {
@@ -18,11 +18,32 @@ describe('TEAMS_2026', () => {
     expect(champion.displayName).toBe('DIGI TITANS');
   });
 
-  it('gives every team a logo and a display name', () => {
+  it('gives every team a logo, a display name and an owner', () => {
     TEAMS_2026.forEach(team => {
       expect(team.logo).toMatch(/^\/.+\.png$/);
       expect(team.displayName).toBeTruthy();
+      expect(team.owner).toBeTruthy();
     });
+  });
+
+  it('uses the display names from CPL2026.xlsx', () => {
+    const shown = TEAMS_2026.map(t => t.displayName).sort();
+    expect(shown).toEqual([
+      'Avengers XI', 'Colruyt Super Kings', 'DIGI TITANS', 'Fearless Falcons',
+      'Hits & Misses', 'Mavericks', 'Pirates XI', 'Quality Strikers'
+    ]);
+  });
+
+  it('keeps canonical Supabase names unchanged by the 2026 renames', () => {
+    const canonical = TEAMS_2026.map(t => t.name).sort();
+    expect(canonical).toEqual([
+      'Avengers', 'CSK', 'Digititans', 'Fearless Falcons',
+      'Hits & Misses', 'Mavericks', 'Pirates', 'Quality Strikers'
+    ]);
+  });
+
+  it('publishes the registered auction pool size', () => {
+    expect(AUCTION_POOL_SIZE).toBe(65);
   });
 });
 

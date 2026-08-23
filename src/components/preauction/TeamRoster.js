@@ -30,7 +30,10 @@ const TeamCard = ({ team, index }) => {
           ? <span className="cpl-team-card__initials">{initials(team.name)}</span>
           : <img src={team.logo} alt="" loading="lazy" onError={() => setLogoFailed(true)} />}
       </div>
-      <h3>{team.displayName}</h3>
+      <div>
+        <h3>{team.displayName}</h3>
+        {team.owner && <p className="cpl-team-card__owner">{team.owner}</p>}
+      </div>
     </motion.article>
   );
 };

@@ -1,14 +1,16 @@
 import React from 'react';
 import { CPL_2026 } from '../../config/cpl2026';
+import { AUCTION_POOL_SIZE } from '../../config/teams2026';
 
 /**
  * Reads CPL_2026 directly rather than restating the numbers, so what the public
  * page publishes and what the bidding engine enforces cannot drift apart.
  */
-const AuctionFormat = ({ rules = CPL_2026 }) => {
+const AuctionFormat = ({ rules = CPL_2026, poolSize = AUCTION_POOL_SIZE }) => {
   const auctionSlots = rules.defaultSquadSize - rules.preAuctionSlots.total;
 
   const headline = [
+    { value: poolSize, label: 'Players in the pool' },
     { value: rules.auctionBudget.toLocaleString(), label: 'Coins per team' },
     { value: rules.defaultSquadSize, label: 'Players per squad' },
     { value: rules.preAuctionSlots.total, label: 'Pre-auction slots (free)' },
@@ -25,9 +27,10 @@ const AuctionFormat = ({ rules = CPL_2026 }) => {
       </div>
 
       <p className="cpl-format__intro">
-        Every team starts with the full {rules.auctionBudget.toLocaleString()} coins. The {rules.preAuctionSlots.total} pre-auction
-        players — Captain, Vice-Captain and {rules.preAuctionSlots.retainedOrTraded} retained or traded — cost nothing,
-        so bidding begins at each team's sixth player.
+        {poolSize} players have registered for the auction. Every team starts with the full{' '}
+        {rules.auctionBudget.toLocaleString()} coins: the {rules.preAuctionSlots.total} pre-auction players — Captain,
+        Vice-Captain and {rules.preAuctionSlots.retainedOrTraded} retained or traded — cost nothing, so bidding begins
+        at each team's sixth player.
       </p>
 
       <div className="cpl-format__stats">

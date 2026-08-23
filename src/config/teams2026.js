@@ -6,18 +6,22 @@
  * squad references. `displayName` is what the public page renders, which is how
  * DIGI TITANS appears in comms while the stored row stays "Digititans".
  *
+ * Team names, owners and the auction pool size come from CPL2026.xlsx
+ * ("Retained" and "Auction Players" sheets), which supersedes the 2025-era
+ * mapping in scripts/update_team_names_and_logos.py.
+ *
  * Auction rules are NOT duplicated here — see cpl2026.js. AuctionFormat reads
  * that config directly so published numbers cannot drift from enforced ones.
  */
 export const TEAMS_2026 = [
-  { id: 'CPL_T01', name: 'Avengers', displayName: 'Avengers', logo: '/Avengers.png' },
-  { id: 'CPL_T02', name: 'Fearless Falcons', displayName: 'Fearless Falcons', logo: '/Feralessfalcons.png' },
-  { id: 'CPL_T03', name: 'Hits & Misses', displayName: 'Hits & Misses', logo: '/HitsMisses.png' },
-  { id: 'CPL_T04', name: 'Mavericks', displayName: 'Mavericks', logo: '/Mavericks.png' },
-  { id: 'CPL_T05', name: 'Quality Strikers', displayName: 'Quality Strikers', logo: '/quality_strikers.png' },
-  { id: 'CPL_T06', name: 'Pirates', displayName: 'Pirates', logo: '/Pirates.png' },
-  { id: 'CPL_T07', name: 'CSK', displayName: 'CSK', logo: '/csk.png' },
-  { id: 'CPL_T08', name: 'Digititans', displayName: 'DIGI TITANS', logo: '/digititans.png', isDefendingChampion: true }
+  { id: 'CPL_T01', name: 'Avengers', displayName: 'Avengers XI', owner: 'Shilpa Kuber', logo: '/Avengers.png' },
+  { id: 'CPL_T02', name: 'Fearless Falcons', displayName: 'Fearless Falcons', owner: 'Sravan Mallampeta', logo: '/Feralessfalcons.png' },
+  { id: 'CPL_T03', name: 'Hits & Misses', displayName: 'Hits & Misses', owner: 'Indranil Chowdhury', logo: '/HitsMisses.png' },
+  { id: 'CPL_T04', name: 'Mavericks', displayName: 'Mavericks', owner: 'Anuradha Sharma & Imran', logo: '/Mavericks.png' },
+  { id: 'CPL_T05', name: 'Quality Strikers', displayName: 'Quality Strikers', owner: 'Rakesh Sinha', logo: '/quality_strikers.png' },
+  { id: 'CPL_T06', name: 'Pirates', displayName: 'Pirates XI', owner: 'Kishore Vunnam', logo: '/Pirates.png' },
+  { id: 'CPL_T07', name: 'CSK', displayName: 'Colruyt Super Kings', owner: 'Shaik Sharfuddin', logo: '/csk.png' },
+  { id: 'CPL_T08', name: 'Digititans', displayName: 'DIGI TITANS', owner: 'Srini Guda', logo: '/digititans.png', isDefendingChampion: true }
 ];
 
 /** Ownership call. Update `confirmed` as replies come in. */
@@ -35,6 +39,9 @@ export const PRE_AUCTION_STATUS = {
 };
 
 export const DEFENDING_CHAMPION_SEASON = 2025;
+
+/** Registered players contesting the auction — the Auction Players sheet of CPL2026.xlsx. */
+export const AUCTION_POOL_SIZE = 65;
 
 /**
  * Whole days from `today` until the ownership deadline.

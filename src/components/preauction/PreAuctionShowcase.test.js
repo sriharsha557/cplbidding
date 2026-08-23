@@ -21,6 +21,20 @@ describe('PreAuctionShowcase', () => {
     expect(html).not.toContain('>Digititans<');
   });
 
+  it('uses the 2026 team names, not the 2025 ones', () => {
+    ['Colruyt Super Kings', 'Avengers XI', 'Pirates XI'].forEach(n => expect(html).toContain(n));
+    expect(html).not.toContain('>CSK<');
+  });
+
+  it('credits every team owner', () => {
+    TEAMS_2026.forEach(team => expect(html).toContain(escapeHtml(team.owner)));
+  });
+
+  it('publishes the auction pool size', () => {
+    expect(html).toContain('65');
+    expect(html).toContain('Players in the pool');
+  });
+
   it('badges the defending champion', () => {
     expect(html).toContain('2025 Champions');
     expect(html.match(/cpl-team-card__badge/g)).toHaveLength(1);
