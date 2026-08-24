@@ -88,3 +88,23 @@ test('a team that already has a keeper does not need one', () => {
 test('a team with plenty of slots left does not trigger the warning', () => {
   expect(needsWicketKeeper(team({ squad: new Array(5).fill({}) }))).toBe(false);
 });
+
+describe('CPL_CATEGORY_BUDGETS is derived from config', () => {
+  const { CPL_CATEGORY_BUDGETS } = require('./auctionUtils');
+  const { CPL_2026 } = require('../config/cpl2026');
+
+  it('takes each cap straight from maxBidByCategory', () => {
+    Object.entries(CPL_2026.maxBidByCategory).forEach(([role, max]) => {
+      expect(CPL_CATEGORY_BUDGETS[role].max).toBe(max);
+    });
+  });
+
+  it('caps total the auction budget', () => {
+    const total = Object.values(CPL_CATEGORY_BUDGETS).reduce((sum, b) => sum + b.max, 0);
+    expect(total).toBe(CPL_2026.auctionBudget);
+  });
+
+  it('does not demand more wicket-keepers than the rules require', () => {
+    expect(CPL_CATEGORY_BUDGETS.WicketKeeper.minPlayers).toBe(CPL_2026.minWicketKeepers);
+  });
+});

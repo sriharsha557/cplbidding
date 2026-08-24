@@ -76,10 +76,10 @@ class SupabaseAuctionService {
           // min/minPlayers/maxPlayers come from CPL_CATEGORY_BUDGETS so this
           // shape matches the Excel fallback path built in App.js.
           categoryBudgets: {
-            'Batsman': { spent: team.batsman_budget_spent || 0, remaining: team.batsman_budget_remaining || 0, max: CPL_2026.advisoryCategorySpend['Batsman'], min: CPL_CATEGORY_BUDGETS['Batsman'].min, minPlayers: CPL_CATEGORY_BUDGETS['Batsman'].minPlayers, maxPlayers: CPL_CATEGORY_BUDGETS['Batsman'].maxPlayers },
-            'Bowler': { spent: team.bowler_budget_spent || 0, remaining: team.bowler_budget_remaining || 0, max: CPL_2026.advisoryCategorySpend['Bowler'], min: CPL_CATEGORY_BUDGETS['Bowler'].min, minPlayers: CPL_CATEGORY_BUDGETS['Bowler'].minPlayers, maxPlayers: CPL_CATEGORY_BUDGETS['Bowler'].maxPlayers },
-            'All-rounder': { spent: team.allrounder_budget_spent || 0, remaining: team.allrounder_budget_remaining || 0, max: CPL_2026.advisoryCategorySpend['All-rounder'], min: CPL_CATEGORY_BUDGETS['All-rounder'].min, minPlayers: CPL_CATEGORY_BUDGETS['All-rounder'].minPlayers, maxPlayers: CPL_CATEGORY_BUDGETS['All-rounder'].maxPlayers },
-            'WicketKeeper': { spent: team.wicketkeeper_budget_spent || 0, remaining: team.wicketkeeper_budget_remaining || 0, max: CPL_2026.advisoryCategorySpend['WicketKeeper'], min: CPL_CATEGORY_BUDGETS['WicketKeeper'].min, minPlayers: CPL_CATEGORY_BUDGETS['WicketKeeper'].minPlayers, maxPlayers: CPL_CATEGORY_BUDGETS['WicketKeeper'].maxPlayers }
+            'Batsman': { spent: team.batsman_budget_spent || 0, remaining: team.batsman_budget_remaining || 0, max: CPL_2026.maxBidByCategory['Batsman'], min: CPL_CATEGORY_BUDGETS['Batsman'].min, minPlayers: CPL_CATEGORY_BUDGETS['Batsman'].minPlayers, maxPlayers: CPL_CATEGORY_BUDGETS['Batsman'].maxPlayers },
+            'Bowler': { spent: team.bowler_budget_spent || 0, remaining: team.bowler_budget_remaining || 0, max: CPL_2026.maxBidByCategory['Bowler'], min: CPL_CATEGORY_BUDGETS['Bowler'].min, minPlayers: CPL_CATEGORY_BUDGETS['Bowler'].minPlayers, maxPlayers: CPL_CATEGORY_BUDGETS['Bowler'].maxPlayers },
+            'All-rounder': { spent: team.allrounder_budget_spent || 0, remaining: team.allrounder_budget_remaining || 0, max: CPL_2026.maxBidByCategory['All-rounder'], min: CPL_CATEGORY_BUDGETS['All-rounder'].min, minPlayers: CPL_CATEGORY_BUDGETS['All-rounder'].minPlayers, maxPlayers: CPL_CATEGORY_BUDGETS['All-rounder'].maxPlayers },
+            'WicketKeeper': { spent: team.wicketkeeper_budget_spent || 0, remaining: team.wicketkeeper_budget_remaining || 0, max: CPL_2026.maxBidByCategory['WicketKeeper'], min: CPL_CATEGORY_BUDGETS['WicketKeeper'].min, minPlayers: CPL_CATEGORY_BUDGETS['WicketKeeper'].minPlayers, maxPlayers: CPL_CATEGORY_BUDGETS['WicketKeeper'].maxPlayers }
           }
         };
       });
@@ -236,10 +236,10 @@ class SupabaseAuctionService {
           max_tokens: CPL_2026.auctionBudget,
           max_squad_size: CPL_2026.defaultSquadSize,
           tokens_left: CPL_2026.auctionBudget,
-          batsman_budget_remaining: CPL_2026.advisoryCategorySpend['Batsman'],
-          bowler_budget_remaining: CPL_2026.advisoryCategorySpend['Bowler'],
-          allrounder_budget_remaining: CPL_2026.advisoryCategorySpend['All-rounder'],
-          wicketkeeper_budget_remaining: CPL_2026.advisoryCategorySpend['WicketKeeper']
+          batsman_budget_remaining: CPL_2026.maxBidByCategory['Batsman'],
+          bowler_budget_remaining: CPL_2026.maxBidByCategory['Bowler'],
+          allrounder_budget_remaining: CPL_2026.maxBidByCategory['All-rounder'],
+          wicketkeeper_budget_remaining: CPL_2026.maxBidByCategory['WicketKeeper']
         })), { onConflict: 'team_id', ignoreDuplicates: false });
 
       if (teamsError) {
@@ -309,10 +309,10 @@ class SupabaseAuctionService {
           max_tokens: CPL_2026.auctionBudget,
           max_squad_size: CPL_2026.defaultSquadSize,
           tokens_left: CPL_2026.auctionBudget,
-          batsman_budget_remaining: CPL_2026.advisoryCategorySpend['Batsman'],
-          bowler_budget_remaining: CPL_2026.advisoryCategorySpend['Bowler'],
-          allrounder_budget_remaining: CPL_2026.advisoryCategorySpend['All-rounder'],
-          wicketkeeper_budget_remaining: CPL_2026.advisoryCategorySpend['WicketKeeper']
+          batsman_budget_remaining: CPL_2026.maxBidByCategory['Batsman'],
+          bowler_budget_remaining: CPL_2026.maxBidByCategory['Bowler'],
+          allrounder_budget_remaining: CPL_2026.maxBidByCategory['All-rounder'],
+          wicketkeeper_budget_remaining: CPL_2026.maxBidByCategory['WicketKeeper']
         })), {
           onConflict: 'team_id',
           ignoreDuplicates: false
@@ -397,13 +397,13 @@ class SupabaseAuctionService {
           // category panels agree with the config instead of the stale schema
           // defaults (400/400/200/150).
           batsman_budget_spent: 0,
-          batsman_budget_remaining: CPL_2026.advisoryCategorySpend['Batsman'],
+          batsman_budget_remaining: CPL_2026.maxBidByCategory['Batsman'],
           bowler_budget_spent: 0,
-          bowler_budget_remaining: CPL_2026.advisoryCategorySpend['Bowler'],
+          bowler_budget_remaining: CPL_2026.maxBidByCategory['Bowler'],
           allrounder_budget_spent: 0,
-          allrounder_budget_remaining: CPL_2026.advisoryCategorySpend['All-rounder'],
+          allrounder_budget_remaining: CPL_2026.maxBidByCategory['All-rounder'],
           wicketkeeper_budget_spent: 0,
-          wicketkeeper_budget_remaining: CPL_2026.advisoryCategorySpend['WicketKeeper'],
+          wicketkeeper_budget_remaining: CPL_2026.maxBidByCategory['WicketKeeper'],
           batsman_count: 0,
           bowler_count: 0,
           allrounder_count: 0,
@@ -503,15 +503,15 @@ class SupabaseAuctionService {
       const { error: teamsError } = await supabase
         .from('teams')
         .update({
-          tokens_left: 1200,
+          tokens_left: CPL_2026.auctionBudget,
           batsman_budget_spent: 0,
-          batsman_budget_remaining: 350,
+          batsman_budget_remaining: CPL_2026.maxBidByCategory['Batsman'],
           bowler_budget_spent: 0,
-          bowler_budget_remaining: 300,
+          bowler_budget_remaining: CPL_2026.maxBidByCategory['Bowler'],
           allrounder_budget_spent: 0,
-          allrounder_budget_remaining: 350,
+          allrounder_budget_remaining: CPL_2026.maxBidByCategory['All-rounder'],
           wicketkeeper_budget_spent: 0,
-          wicketkeeper_budget_remaining: 200,
+          wicketkeeper_budget_remaining: CPL_2026.maxBidByCategory['WicketKeeper'],
           batsman_count: 0,
           bowler_count: 0,
           allrounder_count: 0,

@@ -10,45 +10,35 @@ export const ROLE_EMOJIS = {
   'All-rounder': '⚡'
 };
 
-// CPL Category Budget Configuration - Optimized Distribution
-export const CPL_CATEGORY_BUDGETS = {
-  'Batsman': { 
-    min: 294,  // 70% of 420 (must spend minimum)
-    max: 420,  // 35% of total budget
-    minPlayers: 4, 
-    maxPlayers: 5,
-    description: 'Core batting lineup',
-    percentage: 35,
-    strategy: 'Invest heavily in batting core'
-  },
-  'Bowler': { 
-    min: 294,  // 70% of 420 (must spend minimum)
-    max: 420,  // 35% of total budget
-    minPlayers: 4, 
-    maxPlayers: 5,
-    description: 'Bowling attack',
-    percentage: 35,
-    strategy: 'Balance between pace and spin'
-  },
-  'All-rounder': { 
-    min: 168,  // 70% of 240 (must spend minimum)
-    max: 240,  // 20% of total budget
-    minPlayers: 3, 
-    maxPlayers: 4,
-    description: 'Versatile players',
-    percentage: 20,
-    strategy: 'Focus on versatility and value'
-  },
-  'WicketKeeper': { 
-    min: 84,   // 70% of 120 (must spend minimum)
-    max: 120,  // 10% of total budget
-    minPlayers: 2, 
-    maxPlayers: 3,
-    description: 'Wicket keeping specialists',
-    percentage: 10,
-    strategy: 'One premium keeper + backup'
-  }
+/**
+ * Per-category spend caps for the auction phase.
+ *
+ * Derived from CPL_2026.maxBidByCategory rather than restated: the caps sum to
+ * the 1,000-coin auction budget, and the previous hard-coded table still split a
+ * 1,200-coin budget from 2025. `min` is the 70% "must spend" floor CategoryProgress
+ * renders as a range.
+ *
+ * Player counts apply to the full 15-man squad, so the five pre-auction players
+ * count toward them — loadData tallies PreAuction rows into roleCount.
+ */
+const CATEGORY_SHAPE = {
+  'Batsman':      { minPlayers: 4, maxPlayers: 5, description: 'Core batting lineup', strategy: 'Invest heavily in batting core' },
+  'Bowler':       { minPlayers: 4, maxPlayers: 5, description: 'Bowling attack', strategy: 'Balance between pace and spin' },
+  'All-rounder':  { minPlayers: 3, maxPlayers: 4, description: 'Versatile players', strategy: 'Focus on versatility and value' },
+  'WicketKeeper': { minPlayers: CPL_2026.minWicketKeepers, maxPlayers: 3, description: 'Wicket keeping specialists', strategy: 'One premium keeper + backup' }
 };
+
+export const CPL_CATEGORY_BUDGETS = Object.fromEntries(
+  Object.entries(CATEGORY_SHAPE).map(([role, shape]) => {
+    const max = CPL_2026.maxBidByCategory[role];
+    return [role, {
+      ...shape,
+      max,
+      min: Math.round(max * 0.7),
+      percentage: Math.round((max / CPL_2026.auctionBudget) * 100)
+    }];
+  })
+);
 
 // Total team budget for the auction phase, from config
 export const TOTAL_TEAM_BUDGET = CPL_2026.auctionBudget;

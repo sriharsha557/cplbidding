@@ -151,10 +151,10 @@ describe('uploadExcelData', () => {
     expect(teamRow.max_tokens).toBe(CPL_2026.auctionBudget);
     expect(teamRow.tokens_left).toBe(CPL_2026.auctionBudget);
     expect(teamRow.max_squad_size).toBe(CPL_2026.defaultSquadSize);
-    expect(teamRow.batsman_budget_remaining).toBe(CPL_2026.advisoryCategorySpend['Batsman']);
-    expect(teamRow.bowler_budget_remaining).toBe(CPL_2026.advisoryCategorySpend['Bowler']);
-    expect(teamRow.allrounder_budget_remaining).toBe(CPL_2026.advisoryCategorySpend['All-rounder']);
-    expect(teamRow.wicketkeeper_budget_remaining).toBe(CPL_2026.advisoryCategorySpend['WicketKeeper']);
+    expect(teamRow.batsman_budget_remaining).toBe(CPL_2026.maxBidByCategory['Batsman']);
+    expect(teamRow.bowler_budget_remaining).toBe(CPL_2026.maxBidByCategory['Bowler']);
+    expect(teamRow.allrounder_budget_remaining).toBe(CPL_2026.maxBidByCategory['All-rounder']);
+    expect(teamRow.wicketkeeper_budget_remaining).toBe(CPL_2026.maxBidByCategory['WicketKeeper']);
   });
 
   test('uses a NULL-safe delete predicate when locked players exist', async () => {
