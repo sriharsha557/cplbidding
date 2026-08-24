@@ -1,7 +1,15 @@
 import { CPL_2026 } from '../config/cpl2026';
 
 // Role order for auction - CPL Category-based bidding
-export const ROLE_ORDER = ['Batsman', 'Bowler', 'All-rounder', 'WicketKeeper'];
+/**
+ * Auction running order by category, and the single source for it: the player
+ * sort, the phase numbering and the progress UI all derive from this array.
+ *
+ * Wicket-keepers go first. There are only three in the 2026 pool and five teams
+ * still need one, so running them last put the scarcest category under the
+ * hammer when budgets were already spent.
+ */
+export const ROLE_ORDER = ['WicketKeeper', 'Batsman', 'Bowler', 'All-rounder'];
 
 export const ROLE_EMOJIS = {
   'Batsman': '🏏',
