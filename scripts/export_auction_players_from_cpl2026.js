@@ -44,6 +44,15 @@ const ROLE_MAP = {
  */
 const BASE_TOKENS = { Batsman: 35, Bowler: 35, 'All-rounder': 40, WicketKeeper: 35 };
 
+/**
+ * Employee IDs corrected after registration, keyed by the value in the sheet.
+ * Applied here rather than by editing CPL2026.xlsx, which is re-sent as
+ * registrations come in and whose Retained sheet would lose its layout if
+ * rewritten. Fix the source sheet too when convenient; this map is harmless
+ * once the sheet agrees.
+ */
+const ID_CORRECTIONS = { PRCHI: '399x' };
+
 const TEAMS = [
   { TeamID: 'CPL_T01', TeamName: 'Avengers',         LogoFile: 'Avengers.png' },
   { TeamID: 'CPL_T02', TeamName: 'Fearless Falcons', LogoFile: 'Feralessfalcons.png' },
@@ -65,7 +74,8 @@ const rows = XLSX.utils
 const problems = [];
 const players = rows.map((r, i) => {
   const name = String(r['Full Name']).trim();
-  const playerId = String(r['Employee ID']).trim();
+  const rawId = String(r['Employee ID']).trim();
+  const playerId = ID_CORRECTIONS[rawId] || rawId;
   const preferred = String(r['Preferred Role']).trim().toLowerCase();
   const role = ROLE_MAP[preferred];
 
