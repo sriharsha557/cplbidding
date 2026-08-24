@@ -5,6 +5,8 @@ import TeamDashboard from './TeamDashboard';
 import CategoryProgress from './CategoryProgress';
 import AuctionProgress from './AuctionProgress';
 import PreAuctionShowcase from './preauction/PreAuctionShowcase';
+import { CPL_2026 } from '../config/cpl2026';
+import { TEAMS_2026, AUCTION_POOL_SIZE } from '../config/teams2026';
 
 const tabs = [
   { id: 'overview', label: 'Overview' },
@@ -40,7 +42,7 @@ function HomePage({ auctionState }) {
     teams = {},
     auctionHistory = [],
     unsoldPlayers = [],
-    maxTokens = 1200
+    maxTokens = CPL_2026.auctionBudget
   } = auctionState;
 
   useEffect(() => {
@@ -57,6 +59,14 @@ function HomePage({ auctionState }) {
   const totalUnsold = unsoldPlayers.length;
   const totalProcessed = totalSold + totalUnsold;
   const totalSpent = auctionHistory.reduce((sum, player) => sum + (Number(player.SoldPrice) || 0), 0);
+
+  // Supabase is empty until the pre-auction squads are uploaded, and loadData
+  // resolves with empty collections rather than throwing, so the Excel fallback
+  // in App.js never fires. Fall back to the published config: a page linked from
+  // a company-wide mail must not headline zeros while the sections below it list
+  // eight teams and a full player pool.
+  const teamCount = Object.keys(teams).length || TEAMS_2026.length;
+  const poolCount = players.length || AUCTION_POOL_SIZE;
   const teamStats = useMemo(() => Object.entries(teams).map(([name, team]) => {
     const squad = team.squad || [];
     const tokenLimit = team.maxTokens || maxTokens;
@@ -113,9 +123,9 @@ function HomePage({ auctionState }) {
           </div>
 
           <div className="cpl-scoreboard">
-            <Stat value={Object.keys(teams).length} label="Teams ready" accent="mint" />
-            <Stat value={players.length} label="Players in pool" />
-            <Stat value={auctionStarted ? `${totalProcessed}/${players.length}` : `${(maxTokens * Object.keys(teams).length).toLocaleString()}`} label={auctionStarted ? 'Players processed' : 'Total tokens'} accent="coral" />
+            <Stat value={teamCount} label="Teams ready" accent="mint" />
+            <Stat value={poolCount} label="Players in pool" />
+            <Stat value={auctionStarted ? `${totalProcessed}/${poolCount}` : `${(maxTokens * teamCount).toLocaleString()}`} label={auctionStarted ? 'Players processed' : 'Total tokens'} accent="coral" />
             <Stat value={isComplete ? 'Complete' : currentPhase ? `Phase ${currentPhase.phase}/4` : 'On deck'} label={isComplete ? 'Auction status' : 'Current stage'} accent="lavender" />
           </div>
         </div>
