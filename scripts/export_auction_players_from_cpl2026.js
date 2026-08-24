@@ -38,9 +38,14 @@ const ROLE_MAP = {
 };
 
 /**
- * Opening price by role, mirroring the lowest 2025 values. All-rounders start
- * higher because they carry the highest bid ceiling (350 vs 250/150).
- * Change here to reprice the whole pool.
+ * Fallback opening price by role, used only where "Base Token" is blank in the
+ * sheet. A filled value always wins.
+ *
+ * BaseTokens doubles as the auction running order: sortPlayersByAuctionOrder
+ * sorts by role, then by BaseTokens descending, so a higher value brings a
+ * player up earlier within their category. Leaving the column blank ties every
+ * player at the default, and a stable sort then falls back to registration
+ * order — which is the "random order" the owners noticed.
  */
 const BASE_TOKENS = { Batsman: 35, Bowler: 35, 'All-rounder': 40, WicketKeeper: 35 };
 
@@ -72,6 +77,7 @@ const rows = XLSX.utils
   .filter(r => String(r['Full Name']).trim() !== '');
 
 const problems = [];
+const unranked = [];
 const players = rows.map((r, i) => {
   const name = String(r['Full Name']).trim();
   const rawId = String(r['Employee ID']).trim();
@@ -82,12 +88,22 @@ const players = rows.map((r, i) => {
   if (!playerId) problems.push(`${name}: no Employee ID`);
   if (!role) problems.push(`${name}: unmapped Preferred Role "${r['Preferred Role']}"`);
 
+  // "Base Token" is the hand-assigned tier; blanks fall back to the role default.
+  const declared = String(r['Base Token']).trim();
+  if (declared && Number.isNaN(Number(declared))) {
+    problems.push(`${name}: Base Token "${declared}" is not a number`);
+  }
+  const baseTokens = declared && !Number.isNaN(Number(declared))
+    ? Number(declared)
+    : (role ? BASE_TOKENS[role] : '');
+  if (!declared) unranked.push(`${name} (${role || '?'})`);
+
   const photo = photos.get(`${playerId.toLowerCase()}.jpg`) || '';
   return {
     PlayerID: playerId,
     Name: name,
     Role: role || '',
-    BaseTokens: role ? BASE_TOKENS[role] : '',
+    BaseTokens: baseTokens,
     PhotoFileName: photo,
     Department: '',
     Status: 'Available',
@@ -133,3 +149,10 @@ const byRole = players.reduce((acc, p) => ({ ...acc, [p.Role]: (acc[p.Role] || 0
 console.log(`Wrote ${XLSX_OUT} and ${SQL_OUT}`);
 console.log(`  ${players.length} players: ${Object.entries(byRole).map(([r, n]) => `${r} ${n}`).join(', ')}`);
 console.log(`  ${players.filter(p => p.PhotoFileName).length} with photos, ${players.filter(p => !p.PhotoFileName).length} without`);
+
+if (unranked.length) {
+  console.log(`
+  ${unranked.length} have no Base Token and sit at the role default,`);
+  console.log('  so they auction in registration order behind the ranked players:');
+  unranked.forEach(u => console.log(`    - ${u}`));
+}
