@@ -43,7 +43,7 @@ describe('TEAMS_2026', () => {
   });
 
   it('publishes the registered auction pool size', () => {
-    expect(AUCTION_POOL_SIZE).toBe(65);
+    expect(AUCTION_POOL_SIZE).toBe(59);
   });
 });
 

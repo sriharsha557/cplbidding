@@ -2,7 +2,7 @@ import React from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
 import PreAuctionShowcase from './PreAuctionShowcase';
 import SeasonRoadmap from './SeasonRoadmap';
-import { TEAMS_2026 } from '../../config/teams2026';
+import { TEAMS_2026, AUCTION_POOL_SIZE } from '../../config/teams2026';
 
 const render = element => renderToStaticMarkup(element);
 
@@ -31,7 +31,7 @@ describe('PreAuctionShowcase', () => {
   });
 
   it('publishes the auction pool size', () => {
-    expect(html).toContain('65');
+    expect(html).toContain(String(AUCTION_POOL_SIZE));
     expect(html).toContain('Players in the pool');
   });
 

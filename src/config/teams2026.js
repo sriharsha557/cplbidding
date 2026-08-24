@@ -40,8 +40,11 @@ export const PRE_AUCTION_STATUS = {
 
 export const DEFENDING_CHAMPION_SEASON = 2025;
 
-/** Registered players contesting the auction — the Auction Players sheet of CPL2026.xlsx. */
-export const AUCTION_POOL_SIZE = 65;
+/**
+ * Registered players contesting the auction. The "Auction Players" sheet of
+ * CPL2026.xlsx has 65 rows, six of which are blank, leaving 59 real entries.
+ */
+export const AUCTION_POOL_SIZE = 59;
 
 /**
  * Whole days from `today` until the ownership deadline.
