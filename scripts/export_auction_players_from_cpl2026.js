@@ -73,6 +73,19 @@ const BASE_TOKENS = { Batsman: 35, Bowler: 35, 'All-rounder': 40, WicketKeeper: 
  */
 const ID_CORRECTIONS = { PRCHI: '399x' };
 
+/**
+ * Registrations that must not enter the auction, keyed by Employee ID.
+ *
+ * 4YVM "Chandra Sekhar" is the same person as 2X2H "Chandra Sekhar Gubbala",
+ * already locked in as Fearless Falcons Vice-Captain, registered again under a
+ * second ID. The differing IDs mean neither the UNIQUE constraint nor the
+ * pre-auction guard would have caught it, and he would have been auctioned
+ * while already on a squad.
+ */
+const EXCLUDED_IDS = {
+  '4YVM': 'already retained as Fearless Falcons Vice-Captain (2X2H)'
+};
+
 const TEAMS = [
   { TeamID: 'CPL_T01', TeamName: 'Avengers',         LogoFile: 'Avengers.png' },
   { TeamID: 'CPL_T02', TeamName: 'Fearless Falcons', LogoFile: 'Feralessfalcons.png' },
@@ -91,7 +104,18 @@ const rows = XLSX.utils
   .sheet_to_json(XLSX.readFile(SOURCE).Sheets['Auction Players'], { defval: '' })
   .filter(r => String(r['Full Name']).trim() !== '');
 
-const sourceHasRanking = rows.length > 0 && 'Base Token' in rows[0];
+const excluded = [];
+const eligible = rows.filter(r => {
+  const id = String(r['Employee ID']).trim();
+  const reason = EXCLUDED_IDS[id] || EXCLUDED_IDS[id.toUpperCase()];
+  if (reason) {
+    excluded.push(`${id} ${String(r['Full Name']).trim()} — ${reason}`);
+    return false;
+  }
+  return true;
+});
+
+const sourceHasRanking = eligible.length > 0 && 'Base Token' in eligible[0];
 
 /** Employee ID -> Base Token, from whichever workbook carries the column. */
 const carriedRanking = new Map();
@@ -107,7 +131,7 @@ if (!sourceHasRanking && fs.existsSync(RANKING_SOURCE)) {
 
 const problems = [];
 const unranked = [];
-const players = rows.map((r, i) => {
+const players = eligible.map((r, i) => {
   const name = String(r['Full Name']).trim();
   const rawId = String(r['Employee ID']).trim();
   const playerId = ID_CORRECTIONS[rawId] || rawId;
@@ -181,6 +205,10 @@ ON CONFLICT (player_id) DO NOTHING;
 
 const byRole = players.reduce((acc, p) => ({ ...acc, [p.Role]: (acc[p.Role] || 0) + 1 }), {});
 console.log(`Source: ${SOURCE}`);
+if (excluded.length) {
+  console.log(`  excluded ${excluded.length} registration(s):`);
+  excluded.forEach(e => console.log(`    - ${e}`));
+}
 if (!sourceHasRanking) {
   console.log(`  no "Base Token" column — carried ${carriedRanking.size} rankings forward from ${RANKING_SOURCE}`);
 }

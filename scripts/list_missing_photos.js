@@ -13,10 +13,11 @@ const path = require('path');
 
 const PHOTO_DIR = path.join('public', 'players');
 const PRE_AUCTION = path.join('data', 'CPL_2026_PreAuction_Template.xlsx');
-const SOURCE = 'CPL2026.xlsx';
+const SOURCE = process.argv[2] || 'CPL2026 (2).xlsx';
 
-/** Keep in step with ID_CORRECTIONS in export_auction_players_from_cpl2026.js. */
+/** Keep both maps in step with export_auction_players_from_cpl2026.js. */
 const ID_CORRECTIONS = { PRCHI: '399x' };
+const EXCLUDED_IDS = ['4YVM'];
 
 const have = new Set(fs.readdirSync(PHOTO_DIR).map(f => f.toLowerCase()));
 const hasPhoto = id => id && have.has(`${String(id).toLowerCase()}.jpg`);
@@ -30,6 +31,7 @@ XLSX.utils
 XLSX.utils
   .sheet_to_json(XLSX.readFile(SOURCE).Sheets['Auction Players'], { defval: '' })
   .filter(r => String(r['Full Name']).trim())
+  .filter(r => !EXCLUDED_IDS.includes(String(r['Employee ID']).trim().toUpperCase()))
   .forEach(r => {
     const raw = String(r['Employee ID']).trim();
     rows.push({ group: 'Auction pool', id: ID_CORRECTIONS[raw] || raw, name: String(r['Full Name']).trim() });

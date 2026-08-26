@@ -41,10 +41,11 @@ export const PRE_AUCTION_STATUS = {
 export const DEFENDING_CHAMPION_SEASON = 2025;
 
 /**
- * Registered players contesting the auction. The "Auction Players" sheet of
- * CPL2026.xlsx has 65 rows, six of which are blank, leaving 59 real entries.
+ * Registered players contesting the auction, after blank rows are dropped and
+ * 4YVM is removed as a duplicate registration of a retained Vice-Captain.
+ * Keep in step with scripts/export_auction_players_from_cpl2026.js.
  */
-export const AUCTION_POOL_SIZE = 59;
+export const AUCTION_POOL_SIZE = 65;
 
 /**
  * Whole days from `today` until the ownership deadline.
