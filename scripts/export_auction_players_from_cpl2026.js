@@ -31,6 +31,7 @@ const SOURCE = process.argv[2] || 'CPL2026.xlsx';
  */
 const RANKING_SOURCE = 'CPL2026.xlsx';
 const PHOTO_DIR = path.join('public', 'players');
+const PRE_AUCTION = path.join('data', 'CPL_2026_PreAuction_Template.xlsx');
 const XLSX_OUT = path.join('data', 'CPL_2026_AuctionPlayers.xlsx');
 const SQL_OUT = path.join('sql', '2026_auction_players_insert.sql');
 
@@ -104,12 +105,49 @@ const rows = XLSX.utils
   .sheet_to_json(XLSX.readFile(SOURCE).Sheets['Auction Players'], { defval: '' })
   .filter(r => String(r['Full Name']).trim() !== '');
 
+/**
+ * Anyone already on a pre-auction squad, by Employee ID and by name.
+ *
+ * Only players not already retained belong in the auction. The name check
+ * matters as much as the ID: 4YVM registered under a second Employee ID while
+ * already locked in as a Vice-Captain, so an ID-only check let him through.
+ */
+const retainedById = new Set();
+const retainedByName = new Map();
+const nameKey = v => String(v).toLowerCase().replace(/[^a-z]/g, '');
+XLSX.utils
+  .sheet_to_json(XLSX.readFile(PRE_AUCTION).Sheets.PreAuction, { defval: '' })
+  .forEach(r => {
+    if (r.PlayerID) retainedById.add(String(r.PlayerID).trim().toLowerCase());
+    if (r.Name) retainedByName.set(nameKey(r.Name), `${r.Name} (${r.TeamName})`);
+  });
+
+/** Loose name match: "Chandra Sekhar" against "Chandra Sekhar Gubbala". */
+const retainedMatch = name => {
+  const key = nameKey(name);
+  if (retainedByName.has(key)) return retainedByName.get(key);
+  for (const [k, label] of retainedByName) {
+    if (k.startsWith(key) || key.startsWith(k)) return label;
+  }
+  return null;
+};
+
 const excluded = [];
 const eligible = rows.filter(r => {
   const id = String(r['Employee ID']).trim();
+  const name = String(r['Full Name']).trim();
   const reason = EXCLUDED_IDS[id] || EXCLUDED_IDS[id.toUpperCase()];
   if (reason) {
-    excluded.push(`${id} ${String(r['Full Name']).trim()} — ${reason}`);
+    excluded.push(`${id} ${name} — ${reason}`);
+    return false;
+  }
+  if (retainedById.has(id.toLowerCase())) {
+    excluded.push(`${id} ${name} — already retained (matched on Employee ID)`);
+    return false;
+  }
+  const retained = retainedMatch(name);
+  if (retained) {
+    excluded.push(`${id} ${name} — already retained as ${retained} (matched on name)`);
     return false;
   }
   return true;
