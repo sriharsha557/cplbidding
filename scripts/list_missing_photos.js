@@ -11,6 +11,8 @@ const XLSX = require('xlsx');
 const fs = require('fs');
 const path = require('path');
 
+const EOL = String.fromCharCode(10);
+
 const PHOTO_DIR = path.join('public', 'players');
 const PRE_AUCTION = path.join('data', 'CPL_2026_PreAuction_Template.xlsx');
 const SOURCE = process.argv[2] || 'CPL2026.xlsx';
@@ -48,6 +50,13 @@ groups.forEach(g => {
   inGroup.forEach(m => console.log(`  ${String(m.id || 'NO ID').padEnd(8)} ${m.name}`));
   console.log('');
 });
+
+const csvPath = path.join('data', 'missing_photos.csv');
+const csvLines = ['EmployeeID,Name,Group,RequiredFilename'].concat(
+  missing.map(m => [m.id, `"${m.name}"`, m.group, `${m.id}.jpg`].join(','))
+);
+fs.writeFileSync(csvPath, csvLines.join(EOL) + EOL, 'utf8');
+console.log(`Wrote ${csvPath}` + EOL);
 
 console.log(`Drop each file into ${PHOTO_DIR} named <PlayerID>.jpg, then re-run.`);
 console.log('For pre-auction players also run scripts/fix_preauction_photos.js to refresh the workbook.');
