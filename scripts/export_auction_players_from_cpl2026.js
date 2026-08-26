@@ -19,15 +19,15 @@ const fs = require('fs');
 const path = require('path');
 
 /** Registration workbook. Pass a different one as the first argument. */
-const SOURCE = process.argv[2] || 'CPL2026 (2).xlsx';
+const SOURCE = process.argv[2] || 'CPL2026.xlsx';
 
 /**
- * Where to recover "Base Token" from when SOURCE has no such column.
+ * Fallback for "Base Token" if a future SOURCE arrives without the column.
  *
- * The ranking is hand-assigned and easily lost: CPL2026 (2).xlsx dropped the
- * column entirely. Rather than silently falling back to role defaults — which
- * is what produced the random ordering owners complained about — carry the
- * values forward from the last workbook that had them, matched on Employee ID.
+ * Kept as a safety net: a fresh form export drops the hand-added ranking, and
+ * silently reverting to role defaults is what produced the random ordering
+ * owners complained about. Prefer scripts/merge_registrations.js, which folds
+ * new registrations into CPL2026.xlsx and keeps the column.
  */
 const RANKING_SOURCE = 'CPL2026.xlsx';
 const PHOTO_DIR = path.join('public', 'players');

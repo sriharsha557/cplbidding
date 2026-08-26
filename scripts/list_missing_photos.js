@@ -13,7 +13,7 @@ const path = require('path');
 
 const PHOTO_DIR = path.join('public', 'players');
 const PRE_AUCTION = path.join('data', 'CPL_2026_PreAuction_Template.xlsx');
-const SOURCE = process.argv[2] || 'CPL2026 (2).xlsx';
+const SOURCE = process.argv[2] || 'CPL2026.xlsx';
 
 /** Keep both maps in step with export_auction_players_from_cpl2026.js. */
 const ID_CORRECTIONS = { PRCHI: '399x' };
