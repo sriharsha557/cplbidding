@@ -180,6 +180,7 @@ function HomePage({ auctionState }) {
                       <p className="cpl-eyebrow">Now on auction</p>
                       <h2>{currentPlayer.Name}</h2>
                       <p className="cpl-player-card__role">{ROLE_EMOJIS[currentPlayer.Role]} {currentPlayer.Role} <span>•</span> Player {currentPlayer.PlayerID}</p>
+                      {currentPlayer.Comments && <p className="cpl-player-card__note"><span aria-hidden="true">💬</span> {currentPlayer.Comments}</p>}
                       <div className="cpl-price"><span>Base price</span><strong>{currentPlayer.BaseTokens} <small>tokens</small></strong></div>
                       {currentPhase && <div className="cpl-phase"><div><span>{currentPhase.phaseName}</span><span>{currentPhase.categoryProgress.current}/{currentPhase.categoryProgress.total}</span></div><div className="cpl-progress"><i style={{ width: `${currentPhase.categoryProgress.percentage}%` }} /></div></div>}
                     </div>
