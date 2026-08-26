@@ -18,7 +18,18 @@ const XLSX = require('xlsx');
 const fs = require('fs');
 const path = require('path');
 
-const SOURCE = 'CPL2026.xlsx';
+/** Registration workbook. Pass a different one as the first argument. */
+const SOURCE = process.argv[2] || 'CPL2026 (2).xlsx';
+
+/**
+ * Where to recover "Base Token" from when SOURCE has no such column.
+ *
+ * The ranking is hand-assigned and easily lost: CPL2026 (2).xlsx dropped the
+ * column entirely. Rather than silently falling back to role defaults — which
+ * is what produced the random ordering owners complained about — carry the
+ * values forward from the last workbook that had them, matched on Employee ID.
+ */
+const RANKING_SOURCE = 'CPL2026.xlsx';
 const PHOTO_DIR = path.join('public', 'players');
 const XLSX_OUT = path.join('data', 'CPL_2026_AuctionPlayers.xlsx');
 const SQL_OUT = path.join('sql', '2026_auction_players_insert.sql');
@@ -33,8 +44,12 @@ const ROLE_MAP = {
   'batting all-rounder': 'All-rounder',
   'bowling all-rounder': 'All-rounder',
   'all-rounder': 'All-rounder',
+  'allrounder': 'All-rounder',
+  'all rounder': 'All-rounder',
   'wicket keeper': 'WicketKeeper',
-  'wicketkeeper': 'WicketKeeper'
+  'wicketkeeper': 'WicketKeeper',
+  'wicket-keeper': 'WicketKeeper',
+  'keeper': 'WicketKeeper'
 };
 
 /**
@@ -76,6 +91,20 @@ const rows = XLSX.utils
   .sheet_to_json(XLSX.readFile(SOURCE).Sheets['Auction Players'], { defval: '' })
   .filter(r => String(r['Full Name']).trim() !== '');
 
+const sourceHasRanking = rows.length > 0 && 'Base Token' in rows[0];
+
+/** Employee ID -> Base Token, from whichever workbook carries the column. */
+const carriedRanking = new Map();
+if (!sourceHasRanking && fs.existsSync(RANKING_SOURCE)) {
+  XLSX.utils
+    .sheet_to_json(XLSX.readFile(RANKING_SOURCE).Sheets['Auction Players'], { defval: '' })
+    .forEach(r => {
+      const id = String(r['Employee ID']).trim().toLowerCase();
+      const token = String(r['Base Token'] === undefined ? '' : r['Base Token']).trim();
+      if (id && token) carriedRanking.set(id, token);
+    });
+}
+
 const problems = [];
 const unranked = [];
 const players = rows.map((r, i) => {
@@ -89,7 +118,9 @@ const players = rows.map((r, i) => {
   if (!role) problems.push(`${name}: unmapped Preferred Role "${r['Preferred Role']}"`);
 
   // "Base Token" is the hand-assigned tier; blanks fall back to the role default.
-  const declared = String(r['Base Token']).trim();
+  const declared = sourceHasRanking
+    ? String(r['Base Token'] === undefined ? '' : r['Base Token']).trim()
+    : (carriedRanking.get(playerId.toLowerCase()) || carriedRanking.get(rawId.toLowerCase()) || '');
   if (declared && Number.isNaN(Number(declared))) {
     problems.push(`${name}: Base Token "${declared}" is not a number`);
   }
@@ -106,6 +137,7 @@ const players = rows.map((r, i) => {
     BaseTokens: baseTokens,
     PhotoFileName: photo,
     Department: '',
+    Comments: String(r.Comments || '').trim(),
     Status: 'Available',
     AuctionOrder: i + 1
   };
@@ -129,7 +161,8 @@ XLSX.writeFile(wb, XLSX_OUT);
 
 const values = players.map(p => `  (${[
   sqlString(p.PlayerID), sqlString(p.Name), sqlString(p.Role), p.BaseTokens,
-  sqlString(p.PhotoFileName || null), 'NULL', p.AuctionOrder, `'Available'`, 'NULL', '0', 'false', 'false'
+  sqlString(p.PhotoFileName || null), 'NULL', p.AuctionOrder, `'Available'`, 'NULL', '0', 'false', 'false',
+  sqlString(p.Comments || null)
 ].join(', ')})`).join(',\n');
 
 fs.writeFileSync(SQL_OUT, `-- CPL 2026 auction pool: ${players.length} players.
@@ -139,14 +172,20 @@ fs.writeFileSync(SQL_OUT, `-- CPL 2026 auction pool: ${players.length} players.
 
 INSERT INTO players (
   player_id, name, role, base_tokens, photo_filename, department,
-  auction_order, status, sold_to, sold_price, is_captain, is_vice_captain
+  auction_order, status, sold_to, sold_price, is_captain, is_vice_captain,
+  comments
 ) VALUES
 ${values}
 ON CONFLICT (player_id) DO NOTHING;
 `, 'utf8');
 
 const byRole = players.reduce((acc, p) => ({ ...acc, [p.Role]: (acc[p.Role] || 0) + 1 }), {});
+console.log(`Source: ${SOURCE}`);
+if (!sourceHasRanking) {
+  console.log(`  no "Base Token" column — carried ${carriedRanking.size} rankings forward from ${RANKING_SOURCE}`);
+}
 console.log(`Wrote ${XLSX_OUT} and ${SQL_OUT}`);
+console.log(`  ${players.filter(p => p.Comments).length} with comments`);
 console.log(`  ${players.length} players: ${Object.entries(byRole).map(([r, n]) => `${r} ${n}`).join(', ')}`);
 console.log(`  ${players.filter(p => p.PhotoFileName).length} with photos, ${players.filter(p => !p.PhotoFileName).length} without`);
 

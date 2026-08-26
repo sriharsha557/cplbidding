@@ -46,6 +46,7 @@ class SupabaseAuctionService {
         BaseTokens: player.base_tokens,
         PhotoFileName: player.photo_filename,
         Department: player.department,
+        Comments: player.comments || '',
         Status: player.status,
         SoldTo: player.sold_to,
         SoldPrice: player.sold_price,
@@ -262,6 +263,7 @@ class SupabaseAuctionService {
           base_tokens: player.BaseTokens,
           photo_filename: player.PhotoFileName || null,
           department: player.Department || null,
+          comments: player.Comments || null,
           auction_order: index + 1,
           status: player.Status || 'Available',
           sold_to: player.SoldTo || null,
@@ -339,6 +341,7 @@ class SupabaseAuctionService {
           base_tokens: player.BaseTokens,
           photo_filename: player.PhotoFileName || null,
           department: player.Department || null,
+          comments: player.Comments || null,
           auction_order: index + 1,
           // Read captain data from Excel if available
           status: player.Status || 'Available',

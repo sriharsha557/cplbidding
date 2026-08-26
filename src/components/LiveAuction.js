@@ -200,6 +200,14 @@ const LiveAuction = ({
               <p className="text-sm opacity-90 mt-2">
                 Player ID: {currentPlayer.PlayerID}
               </p>
+
+              {/* What the player said about themselves at registration. Often the
+                  only context owners have on someone they have never seen play. */}
+              {currentPlayer.Comments && (
+                <p className="player-card__note" title={currentPlayer.Comments}>
+                  <span aria-hidden="true">💬</span> {currentPlayer.Comments}
+                </p>
+              )}
             </div>
           </div>
         </div>
