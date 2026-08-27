@@ -151,10 +151,18 @@ describe('uploadExcelData', () => {
     expect(teamRow.max_tokens).toBe(CPL_2026.auctionBudget);
     expect(teamRow.tokens_left).toBe(CPL_2026.auctionBudget);
     expect(teamRow.max_squad_size).toBe(CPL_2026.defaultSquadSize);
-    expect(teamRow.batsman_budget_remaining).toBe(CPL_2026.maxBidByCategory['Batsman']);
-    expect(teamRow.bowler_budget_remaining).toBe(CPL_2026.maxBidByCategory['Bowler']);
-    expect(teamRow.allrounder_budget_remaining).toBe(CPL_2026.maxBidByCategory['All-rounder']);
-    expect(teamRow.wicketkeeper_budget_remaining).toBe(CPL_2026.maxBidByCategory['WicketKeeper']);
+  });
+
+  test('teams write does not seed per-category budget columns', async () => {
+    mockState.responses.players = {
+      select: { data: [{ player_id: 'P1' }], error: null }
+    };
+
+    await supabaseAuctionService.uploadExcelData(players, teams);
+
+    const teamRow = findCalls('teams', 'upsert')[0].args[0][0];
+    expect(teamRow).not.toHaveProperty('batsman_budget_remaining');
+    expect(teamRow).not.toHaveProperty('wicketkeeper_budget_remaining');
   });
 
   test('uses a NULL-safe delete predicate when locked players exist', async () => {

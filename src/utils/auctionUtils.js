@@ -19,34 +19,17 @@ export const ROLE_EMOJIS = {
 };
 
 /**
- * Per-category spend caps for the auction phase.
- *
- * Derived from CPL_2026.maxBidByCategory rather than restated: the caps sum to
- * the 1,000-coin auction budget, and the previous hard-coded table still split a
- * 1,200-coin budget from 2025. `min` is the 70% "must spend" floor CategoryProgress
- * renders as a range.
- *
- * Player counts apply to the full 15-man squad, so the five pre-auction players
- * count toward them — loadData tallies PreAuction rows into roleCount.
+ * Squad-shape guidance per category — how many players of each role a balanced
+ * 14-man squad wants. Advisory only: there are no per-category budgets and
+ * nothing here blocks a bid. The five pre-auction players count toward these
+ * totals — loadData tallies PreAuction rows into roleCount.
  */
-const CATEGORY_SHAPE = {
+export const CATEGORY_SHAPE = {
   'Batsman':      { minPlayers: 4, maxPlayers: 5, description: 'Core batting lineup', strategy: 'Invest heavily in batting core' },
   'Bowler':       { minPlayers: 4, maxPlayers: 5, description: 'Bowling attack', strategy: 'Balance between pace and spin' },
   'All-rounder':  { minPlayers: 3, maxPlayers: 4, description: 'Versatile players', strategy: 'Focus on versatility and value' },
   'WicketKeeper': { minPlayers: CPL_2026.minWicketKeepers, maxPlayers: 3, description: 'Wicket keeping specialists', strategy: 'One premium keeper + backup' }
 };
-
-export const CPL_CATEGORY_BUDGETS = Object.fromEntries(
-  Object.entries(CATEGORY_SHAPE).map(([role, shape]) => {
-    const max = CPL_2026.maxBidByCategory[role];
-    return [role, {
-      ...shape,
-      max,
-      min: Math.round(max * 0.7),
-      percentage: Math.round((max / CPL_2026.auctionBudget) * 100)
-    }];
-  })
-);
 
 // Total team budget for the auction phase, from config
 export const TOTAL_TEAM_BUDGET = CPL_2026.auctionBudget;
@@ -99,45 +82,36 @@ export const getCurrentAuctionPhase = (players, currentIndex) => {
       total: playersInCategory.length,
       percentage: (currentPlayerInCategory / playersInCategory.length) * 100
     },
-    budget: CPL_CATEGORY_BUDGETS[currentRole]
+    shape: CATEGORY_SHAPE[currentRole]
   };
 };
 
-// Get category statistics for all teams
+// Spend and headcount per category, tallied across all teams. Informational
+// only — there are no per-category budgets. Spend is summed from each team's
+// squad (BidPrice by role); pre-auction players cost nothing so they add 0.
 export const getCategoryStatistics = (teams) => {
   const stats = {};
-  
+
   ROLE_ORDER.forEach(role => {
-    stats[role] = {
-      totalBudget: 0,
-      totalSpent: 0,
-      totalRemaining: 0,
-      totalPlayers: 0,
-      averagePrice: 0,
-      teams: {}
-    };
-    
+    stats[role] = { totalSpent: 0, totalPlayers: 0, averagePrice: 0, teams: {} };
+
     Object.entries(teams).forEach(([teamName, teamData]) => {
-      const categoryBudget = teamData.categoryBudgets?.[role];
-      if (categoryBudget) {
-        stats[role].totalBudget += categoryBudget.spent + categoryBudget.remaining;
-        stats[role].totalSpent += categoryBudget.spent;
-        stats[role].totalRemaining += categoryBudget.remaining;
-        stats[role].totalPlayers += teamData.roleCount[role];
-        
-        stats[role].teams[teamName] = {
-          spent: categoryBudget.spent,
-          remaining: categoryBudget.remaining,
-          players: teamData.roleCount[role]
-        };
-      }
+      const squad = teamData.squad || [];
+      const spent = squad
+        .filter(p => p.Role === role)
+        .reduce((sum, p) => sum + (Number(p.BidPrice) || 0), 0);
+      const players = teamData.roleCount?.[role] || 0;
+
+      stats[role].totalSpent += spent;
+      stats[role].totalPlayers += players;
+      stats[role].teams[teamName] = { spent, players };
     });
-    
+
     if (stats[role].totalPlayers > 0) {
       stats[role].averagePrice = stats[role].totalSpent / stats[role].totalPlayers;
     }
   });
-  
+
   return stats;
 };
 

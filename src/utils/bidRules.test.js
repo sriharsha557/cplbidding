@@ -8,27 +8,31 @@ const team = (overrides = {}) => ({
   ...overrides
 });
 
-test('max bid comes from the published category limits', () => {
-  expect(maxBidFor('WicketKeeper')).toBe(150);
-  expect(maxBidFor('Batsman')).toBe(250);
-  expect(maxBidFor('Bowler')).toBe(250);
+test('the bid cap is a flat 350 for every role', () => {
+  expect(maxBidFor('WicketKeeper')).toBe(350);
+  expect(maxBidFor('Batsman')).toBe(350);
+  expect(maxBidFor('Bowler')).toBe(350);
   expect(maxBidFor('All-rounder')).toBe(350);
 });
 
-test('a bid at the category maximum is allowed', () => {
-  expect(validateBid(team(), 'Batsman', 250).valid).toBe(true);
+test('a bid at the cap is allowed', () => {
+  expect(validateBid(team(), 'Batsman', 350).valid).toBe(true);
 });
 
-test('a bid one coin over the category maximum is rejected', () => {
-  const result = validateBid(team(), 'Batsman', 251);
+test('a bid one coin over the cap is rejected', () => {
+  const result = validateBid(team(), 'Batsman', 351);
   expect(result.valid).toBe(false);
-  expect(result.reason).toMatch(/250/);
+  expect(result.reason).toMatch(/350/);
 });
 
-test('a wicket keeper cannot exceed 150 even with a full purse', () => {
-  const result = validateBid(team(), 'WicketKeeper', 200);
+test('a wicket keeper can now go above the old 150 category cap', () => {
+  expect(validateBid(team(), 'WicketKeeper', 300).valid).toBe(true);
+});
+
+test('no bid may exceed 350 even with a full purse', () => {
+  const result = validateBid(team(), 'WicketKeeper', 400);
   expect(result.valid).toBe(false);
-  expect(result.reason).toMatch(/150/);
+  expect(result.reason).toMatch(/350/);
 });
 
 test('a bid above the remaining purse is rejected', () => {
@@ -64,11 +68,11 @@ test('a negative price is rejected', () => {
   expect(result.valid).toBe(false);
 });
 
-test('category spend caps never block a bid', () => {
-  const overspent = team({
-    categoryBudgets: { Batsman: { spent: 999, remaining: -999, max: 420 } }
+test('how much a team has already spent on a role never blocks a bid', () => {
+  const heavyOnBatsmen = team({
+    squad: new Array(4).fill({ Role: 'Batsman', BidPrice: 300 })
   });
-  expect(validateBid(overspent, 'Batsman', 250).valid).toBe(true);
+  expect(validateBid(heavyOnBatsmen, 'Batsman', 250).valid).toBe(true);
 });
 
 test('a team with no keeper and one slot left needs a keeper', () => {
@@ -89,22 +93,18 @@ test('a team with plenty of slots left does not trigger the warning', () => {
   expect(needsWicketKeeper(team({ squad: new Array(5).fill({}) }))).toBe(false);
 });
 
-describe('CPL_CATEGORY_BUDGETS is derived from config', () => {
-  const { CPL_CATEGORY_BUDGETS } = require('./auctionUtils');
+describe('CATEGORY_SHAPE is advisory squad guidance only', () => {
+  const { CATEGORY_SHAPE } = require('./auctionUtils');
   const { CPL_2026 } = require('../config/cpl2026');
 
-  it('takes each cap straight from maxBidByCategory', () => {
-    Object.entries(CPL_2026.maxBidByCategory).forEach(([role, max]) => {
-      expect(CPL_CATEGORY_BUDGETS[role].max).toBe(max);
+  it('carries no budget figures', () => {
+    Object.values(CATEGORY_SHAPE).forEach(shape => {
+      expect(shape.max).toBeUndefined();
+      expect(shape.min).toBeUndefined();
     });
   });
 
-  it('caps total the auction budget', () => {
-    const total = Object.values(CPL_CATEGORY_BUDGETS).reduce((sum, b) => sum + b.max, 0);
-    expect(total).toBe(CPL_2026.auctionBudget);
-  });
-
   it('does not demand more wicket-keepers than the rules require', () => {
-    expect(CPL_CATEGORY_BUDGETS.WicketKeeper.minPlayers).toBe(CPL_2026.minWicketKeepers);
+    expect(CATEGORY_SHAPE.WicketKeeper.minPlayers).toBe(CPL_2026.minWicketKeepers);
   });
 });

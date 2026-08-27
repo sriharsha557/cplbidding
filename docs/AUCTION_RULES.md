@@ -1,5 +1,14 @@
 # CPL 2025 Auction Rules & Process
 
+> ⚠️ **This document describes the 2025 season** (1,200 tokens, per-category
+> budgets, two pre-assigned players). It is kept for reference only.
+>
+> **CPL 2026 rules** are different and live in
+> [`src/config/cpl2026.js`](../src/config/cpl2026.js) — 1,000-coin single purse,
+> **no category budgets**, a flat **350-coin cap per player**, five pre-auction
+> players per team, squad size 14. See
+> [CATEGORY_BIDDING_GUIDE.md](./CATEGORY_BIDDING_GUIDE.md).
+
 ## Overview
 
 The Colruyt Premier League (CPL) 2025 uses a **Category-Based Auction System** designed to ensure fair distribution of players across all teams. This system prevents any single team from dominating by acquiring all the best players in one category.

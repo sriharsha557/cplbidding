@@ -5,16 +5,15 @@
  * The five pre-auction players (Captain, Vice-Captain, 3 Retained/Traded) cost
  * zero coins, so every team enters the auction with the full 1,000 and five
  * players already on the books. Bidding begins at each team's sixth player.
+ *
+ * There are no per-category budgets: a team may spend its purse however it
+ * likes. The one bidding limit is a flat cap — no single player may go for more
+ * than maxBidPerPlayer coins, whatever their role.
  */
 export const CPL_2026 = {
   auctionBudget: 1000,
 
-  maxBidByCategory: {
-    Batsman: 250,
-    Bowler: 250,
-    'All-rounder': 350,
-    WicketKeeper: 150
-  },
+  maxBidPerPlayer: 350,
 
   minWicketKeepers: 1,
 

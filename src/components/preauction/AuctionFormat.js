@@ -46,13 +46,15 @@ const AuctionFormat = ({ rules = CPL_2026, poolSize = AUCTION_POOL_SIZE }) => {
       </div>
 
       <div className="cpl-format__bids">
-        <p className="cpl-eyebrow">Maximum bid by role</p>
+        <p className="cpl-eyebrow">Bidding limit</p>
         <ul>
-          {Object.entries(rules.maxBidByCategory).map(([role, max]) => (
-            <li key={role}><span>{role}</span><strong>{max}</strong></li>
-          ))}
+          <li><span>Maximum bid per player</span><strong>{rules.maxBidPerPlayer}</strong></li>
         </ul>
-        <small>Every squad must include at least {rules.minWicketKeepers} wicket-keeper.</small>
+        <small>
+          One purse, no category budgets — a team spends its {rules.auctionBudget.toLocaleString()} coins
+          however it likes, but no single player can go for more than {rules.maxBidPerPlayer}.
+          Every squad must include at least {rules.minWicketKeepers} wicket-keeper.
+        </small>
       </div>
     </section>
   );

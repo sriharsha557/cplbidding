@@ -1,15 +1,18 @@
 import { CPL_2026 } from '../config/cpl2026';
 
-/** Published maximum bid for a category. Unknown roles fall back to the budget. */
+/**
+ * The flat maximum bid for any player. The `role` argument is accepted so
+ * callers can stay role-aware, but 2026 has no per-category caps — every role
+ * shares the same limit.
+ */
 export function maxBidFor(role) {
-  const max = CPL_2026.maxBidByCategory[role];
-  return max === undefined ? CPL_2026.auctionBudget : max;
+  return CPL_2026.maxBidPerPlayer;
 }
 
 /**
- * The three hard rules for CPL 2026. Category spend caps are advisory and are
- * deliberately NOT checked here — blocking on a rule that is not in the
- * published document cannot be explained to a room mid-auction.
+ * The hard rules for CPL 2026: a positive bid, a squad with room, the flat
+ * per-player cap, and enough coins left in the purse. There are no per-category
+ * budgets to check.
  */
 export function validateBid(team, playerRole, price) {
   if (!team) return { valid: false, reason: 'No team selected.' };
@@ -24,7 +27,7 @@ export function validateBid(team, playerRole, price) {
 
   const max = maxBidFor(playerRole);
   if (price > max) {
-    return { valid: false, reason: `${playerRole} bids are capped at ${max} coins.` };
+    return { valid: false, reason: `Bids are capped at ${max} coins.` };
   }
 
   if (price > team.tokensLeft) {

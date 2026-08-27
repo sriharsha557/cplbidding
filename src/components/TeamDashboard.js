@@ -135,26 +135,6 @@ const TeamDashboard = ({ teams }) => {
                 </div>
               </div>
               
-              {/* Category Budgets */}
-              {teamData.categoryBudgets && (
-                <div className="mt-3 pt-2 border-t border-white/20">
-                  <div className="text-xs opacity-90 mb-2">Category Budgets:</div>
-                  <div className="space-y-1">
-                    {Object.entries(teamData.categoryBudgets).map(([role, budget]) => (
-                      <div key={role} className="flex justify-between items-center text-xs">
-                        <span className="flex items-center gap-1">
-                          {ROLE_EMOJIS[role]}
-                          <span className="truncate">{role}</span>
-                        </span>
-                        <span className={`font-medium ${budget.remaining < 50 ? 'text-red-200' : 'text-white'}`}>
-                          🪙 {budget.remaining}
-                        </span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-              
               {/* Tokens spent indicator */}
               <div className="mt-2">
                 <div className="text-xs opacity-90 mb-1">

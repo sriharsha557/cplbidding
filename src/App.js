@@ -9,7 +9,7 @@ import CplWordmark from './components/CplWordmark';
 import { auctionService } from './services/auctionService';
 import { supabaseAuctionService } from './services/supabaseService';
 
-import { sortPlayersByAuctionOrder, playSound, CPL_CATEGORY_BUDGETS } from './utils/auctionUtils';
+import { sortPlayersByAuctionOrder, playSound } from './utils/auctionUtils';
 import { filterAuctionPool } from './utils/preAuctionGuard';
 import { CPL_2026 } from './config/cpl2026';
 
@@ -115,24 +115,6 @@ function App() {
         toast.loading('Loading from Excel...', { id: loadingToast });
         
         data = await auctionService.loadData();
-        
-        // Initialize teams with CPL category budgets for Excel data. Shape
-        // must match loadData() in supabaseService.js (spent/remaining/max
-        // plus min/minPlayers/maxPlayers), sourced from the same config so
-        // the two data sources never disagree.
-        const teamsWithBudgets = {};
-        Object.keys(data.teams).forEach(teamName => {
-          const categoryBudgets = {};
-          Object.keys(CPL_CATEGORY_BUDGETS).forEach(role => {
-            const { min, max, minPlayers, maxPlayers } = CPL_CATEGORY_BUDGETS[role];
-            categoryBudgets[role] = { spent: 0, remaining: max, min, max, minPlayers, maxPlayers };
-          });
-          teamsWithBudgets[teamName] = {
-            ...data.teams[teamName],
-            categoryBudgets
-          };
-        });
-        data.teams = teamsWithBudgets;
       }
 
       // The five pre-auction players per team are locked, zero-cost, and
@@ -219,7 +201,7 @@ function App() {
         await auctionService.sellPlayer(currentPlayer.PlayerID, teamName, bidPrice, currentPlayer.Role);
       }
       
-      // Update local state with CPL category budget tracking
+      // Update local state
       const updatedTeams = { ...auctionState.teams };
       updatedTeams[teamName].squad.push({
         ...currentPlayer,
@@ -227,12 +209,6 @@ function App() {
       });
       updatedTeams[teamName].tokensLeft -= bidPrice;
       updatedTeams[teamName].roleCount[currentPlayer.Role]++;
-      
-      // Update category budget
-      if (updatedTeams[teamName].categoryBudgets) {
-        updatedTeams[teamName].categoryBudgets[currentPlayer.Role].spent += bidPrice;
-        updatedTeams[teamName].categoryBudgets[currentPlayer.Role].remaining -= bidPrice;
-      }
 
       const historyEntry = {
         Player: currentPlayer.Name,
@@ -241,8 +217,7 @@ function App() {
         SoldPrice: bidPrice,
         Team: teamName,
         TokensLeft: updatedTeams[teamName].tokensLeft,
-        SquadSize: updatedTeams[teamName].squad.length,
-        CategoryBudgetRemaining: updatedTeams[teamName].categoryBudgets?.[currentPlayer.Role]?.remaining || 0
+        SquadSize: updatedTeams[teamName].squad.length
       };
 
       const newPlayerIdx = auctionState.currentPlayerIdx + 1;
@@ -328,12 +303,6 @@ function App() {
       updatedTeams[teamName].squad.push({ ...player, BidPrice: price });
       updatedTeams[teamName].tokensLeft -= price;
       updatedTeams[teamName].roleCount[player.Role]++;
-      
-      // Update category budget
-      if (updatedTeams[teamName].categoryBudgets) {
-        updatedTeams[teamName].categoryBudgets[player.Role].spent += price;
-        updatedTeams[teamName].categoryBudgets[player.Role].remaining -= price;
-      }
 
       const historyEntry = {
         Player: player.Name,
@@ -342,8 +311,7 @@ function App() {
         SoldPrice: price,
         Team: teamName,
         TokensLeft: updatedTeams[teamName].tokensLeft,
-        SquadSize: updatedTeams[teamName].squad.length,
-        CategoryBudgetRemaining: updatedTeams[teamName].categoryBudgets?.[player.Role]?.remaining || 0
+        SquadSize: updatedTeams[teamName].squad.length
       };
 
       const updatedUnsold = auctionState.unsoldPlayers.filter((_, idx) => idx !== playerIdx);

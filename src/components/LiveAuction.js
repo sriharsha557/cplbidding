@@ -56,8 +56,8 @@ const LiveAuction = ({
   const canAfford = (team, price) => team.tokensLeft >= price;
   const isSquadFull = (team) => team.squad.length >= team.maxSquadSize;
 
-  // CPL 2026: the only hard rules are the per-player category cap, the team's
-  // remaining purse and squad size. Category spend caps are advisory.
+  // CPL 2026: the only hard rules are the flat 350-coin per-player cap, the
+  // team's remaining purse and squad size. There are no per-category budgets.
   const isValidBid = (team, playerRole, price) =>
     validateBid(team, playerRole, price).valid;
 
@@ -144,12 +144,12 @@ const LiveAuction = ({
     <div>
       <h2 className="text-2xl font-bold text-gray-800 mb-6 flex items-center gap-2">
         <Target size={24} />
-        Live Auction - Category-Based Bidding
+        Live Auction
       </h2>
 
       <div className="mb-3 flex flex-wrap items-center gap-3">
         <span className="inline-flex items-center gap-2 px-3 py-1.5 bg-blue-50 border border-blue-200 rounded-lg text-sm text-blue-800">
-          <strong>Max bid for {currentPlayer.Role}:</strong> 🪙 {currentMaxBid}
+          <strong>Max bid per player:</strong> 🪙 {currentMaxBid}
         </span>
         {bidRejection && (
           <span className="inline-flex items-center gap-2 px-3 py-1.5 bg-red-50 border border-red-200 rounded-lg text-sm text-red-800">
@@ -166,11 +166,10 @@ const LiveAuction = ({
 
       {/* Category Progress Section */}
       <div className="mb-8">
-        <CategoryProgress 
+        <CategoryProgress
           players={players}
           currentPlayerIdx={currentPlayerIdx}
           teams={teams}
-          auctionHistory={auctionHistory}
         />
       </div>
 
@@ -305,35 +304,6 @@ const LiveAuction = ({
                     </div>
                   </div>
                 </div>
-                
-                {/* Category Budget Check */}
-                {selectedTeamData.categoryBudgets && selectedTeamData.categoryBudgets[currentPlayer.Role] && (
-                  <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
-                    <div className="text-sm font-medium text-blue-800 mb-2">
-                      {roleEmojis[currentPlayer.Role]} {currentPlayer.Role} Budget
-                    </div>
-                    <div className="grid grid-cols-3 gap-2 text-xs">
-                      <div className="text-center">
-                        <div className="font-medium">Remaining</div>
-                        <div className={`${selectedTeamData.categoryBudgets[currentPlayer.Role].remaining >= bidPrice ? 'text-green-600' : 'text-red-600'}`}>
-                          🪙 {selectedTeamData.categoryBudgets[currentPlayer.Role].remaining}
-                        </div>
-                      </div>
-                      <div className="text-center">
-                        <div className="font-medium">Players</div>
-                        <div className={`${selectedTeamData.roleCount[currentPlayer.Role] < selectedTeamData.categoryBudgets[currentPlayer.Role].maxPlayers ? 'text-green-600' : 'text-red-600'}`}>
-                          {selectedTeamData.roleCount[currentPlayer.Role]}/{selectedTeamData.categoryBudgets[currentPlayer.Role].maxPlayers}
-                        </div>
-                      </div>
-                      <div className="text-center">
-                        <div className="font-medium">Min Req</div>
-                        <div className={`${selectedTeamData.roleCount[currentPlayer.Role] >= selectedTeamData.categoryBudgets[currentPlayer.Role].minPlayers ? 'text-green-600' : 'text-orange-600'}`}>
-                          {selectedTeamData.categoryBudgets[currentPlayer.Role].minPlayers}
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                )}
               </div>
             )}
 

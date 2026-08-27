@@ -46,7 +46,7 @@ describe('PreAuctionShowcase', () => {
 
   it('shows the auction rules taken from CPL_2026', () => {
     expect(html).toContain('1,000');
-    expect(html).toContain('All-rounder');
+    expect(html).toContain('Maximum bid per player');
     expect(html).toContain('350');
   });
 });

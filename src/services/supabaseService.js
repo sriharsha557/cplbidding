@@ -1,7 +1,6 @@
 import { createClient } from '@supabase/supabase-js';
 import { CPL_2026 } from '../config/cpl2026';
 import { splitOutPreAuctionPlayers } from '../utils/preAuctionGuard';
-import { CPL_CATEGORY_BUDGETS } from '../utils/auctionUtils';
 
 // Initialize Supabase client
 const supabaseUrl = process.env.REACT_APP_SUPABASE_URL;
@@ -72,15 +71,6 @@ class SupabaseAuctionService {
             'Bowler': 0,
             'WicketKeeper': 0,
             'All-rounder': 0
-          },
-          // Advisory display figures only — never gate or block anything.
-          // min/minPlayers/maxPlayers come from CPL_CATEGORY_BUDGETS so this
-          // shape matches the Excel fallback path built in App.js.
-          categoryBudgets: {
-            'Batsman': { spent: team.batsman_budget_spent || 0, remaining: team.batsman_budget_remaining || 0, max: CPL_2026.maxBidByCategory['Batsman'], min: CPL_CATEGORY_BUDGETS['Batsman'].min, minPlayers: CPL_CATEGORY_BUDGETS['Batsman'].minPlayers, maxPlayers: CPL_CATEGORY_BUDGETS['Batsman'].maxPlayers },
-            'Bowler': { spent: team.bowler_budget_spent || 0, remaining: team.bowler_budget_remaining || 0, max: CPL_2026.maxBidByCategory['Bowler'], min: CPL_CATEGORY_BUDGETS['Bowler'].min, minPlayers: CPL_CATEGORY_BUDGETS['Bowler'].minPlayers, maxPlayers: CPL_CATEGORY_BUDGETS['Bowler'].maxPlayers },
-            'All-rounder': { spent: team.allrounder_budget_spent || 0, remaining: team.allrounder_budget_remaining || 0, max: CPL_2026.maxBidByCategory['All-rounder'], min: CPL_CATEGORY_BUDGETS['All-rounder'].min, minPlayers: CPL_CATEGORY_BUDGETS['All-rounder'].minPlayers, maxPlayers: CPL_CATEGORY_BUDGETS['All-rounder'].maxPlayers },
-            'WicketKeeper': { spent: team.wicketkeeper_budget_spent || 0, remaining: team.wicketkeeper_budget_remaining || 0, max: CPL_2026.maxBidByCategory['WicketKeeper'], min: CPL_CATEGORY_BUDGETS['WicketKeeper'].min, minPlayers: CPL_CATEGORY_BUDGETS['WicketKeeper'].minPlayers, maxPlayers: CPL_CATEGORY_BUDGETS['WicketKeeper'].maxPlayers }
           }
         };
       });
@@ -112,7 +102,7 @@ class SupabaseAuctionService {
   async sellPlayer(playerId, teamName, bidPrice, playerRole) {
     try {
       console.log('Selling player:', { playerId, teamName, bidPrice, playerRole });
-      
+
       // Update player
       const { error: playerError } = await supabase
         .from('players')
@@ -129,17 +119,11 @@ class SupabaseAuctionService {
       }
       console.log('Player updated successfully');
 
-      // Update team budget
-      const roleKey = playerRole.toLowerCase().replace('-', '');
-      const budgetSpentField = `${roleKey}_budget_spent`;
-      const budgetRemainingField = `${roleKey}_budget_remaining`;
-      const countField = `${roleKey}_count`;
-      
-      console.log('Fetching team data:', { teamName, roleKey, budgetSpentField });
-      
+      // Deduct the bid from the team's single purse. There are no per-category
+      // budgets in 2026.
       const { data: team, error: teamFetchError } = await supabase
         .from('teams')
-        .select(`tokens_left, ${budgetSpentField}, ${budgetRemainingField}, ${countField}`)
+        .select('tokens_left')
         .eq('team_name', teamName)
         .single();
 
@@ -148,17 +132,10 @@ class SupabaseAuctionService {
         throw teamFetchError;
       }
 
-      console.log('Team data fetched:', team);
-
       if (team) {
         const { error: teamError } = await supabase
           .from('teams')
-          .update({
-            tokens_left: team.tokens_left - bidPrice,
-            [budgetSpentField]: (team[budgetSpentField] || 0) + bidPrice,
-            [budgetRemainingField]: (team[budgetRemainingField] || 0) - bidPrice,
-            [countField]: (team[countField] || 0) + 1
-          })
+          .update({ tokens_left: team.tokens_left - bidPrice })
           .eq('team_name', teamName);
 
         if (teamError) {
@@ -236,11 +213,7 @@ class SupabaseAuctionService {
           logo_file: team.LogoFile || null,
           max_tokens: CPL_2026.auctionBudget,
           max_squad_size: CPL_2026.defaultSquadSize,
-          tokens_left: CPL_2026.auctionBudget,
-          batsman_budget_remaining: CPL_2026.maxBidByCategory['Batsman'],
-          bowler_budget_remaining: CPL_2026.maxBidByCategory['Bowler'],
-          allrounder_budget_remaining: CPL_2026.maxBidByCategory['All-rounder'],
-          wicketkeeper_budget_remaining: CPL_2026.maxBidByCategory['WicketKeeper']
+          tokens_left: CPL_2026.auctionBudget
         })), { onConflict: 'team_id', ignoreDuplicates: false });
 
       if (teamsError) {
@@ -310,11 +283,7 @@ class SupabaseAuctionService {
           logo_file: team.LogoFile || null,
           max_tokens: CPL_2026.auctionBudget,
           max_squad_size: CPL_2026.defaultSquadSize,
-          tokens_left: CPL_2026.auctionBudget,
-          batsman_budget_remaining: CPL_2026.maxBidByCategory['Batsman'],
-          bowler_budget_remaining: CPL_2026.maxBidByCategory['Bowler'],
-          allrounder_budget_remaining: CPL_2026.maxBidByCategory['All-rounder'],
-          wicketkeeper_budget_remaining: CPL_2026.maxBidByCategory['WicketKeeper']
+          tokens_left: CPL_2026.auctionBudget
         })), {
           onConflict: 'team_id',
           ignoreDuplicates: false
@@ -396,21 +365,6 @@ class SupabaseAuctionService {
           max_tokens: CPL_2026.auctionBudget,
           tokens_left: CPL_2026.auctionBudget,
           max_squad_size: CPL_2026.defaultSquadSize,
-          // Advisory display figures only — never enforced. Seeded here so the
-          // category panels agree with the config instead of the stale schema
-          // defaults (400/400/200/150).
-          batsman_budget_spent: 0,
-          batsman_budget_remaining: CPL_2026.maxBidByCategory['Batsman'],
-          bowler_budget_spent: 0,
-          bowler_budget_remaining: CPL_2026.maxBidByCategory['Bowler'],
-          allrounder_budget_spent: 0,
-          allrounder_budget_remaining: CPL_2026.maxBidByCategory['All-rounder'],
-          wicketkeeper_budget_spent: 0,
-          wicketkeeper_budget_remaining: CPL_2026.maxBidByCategory['WicketKeeper'],
-          batsman_count: 0,
-          bowler_count: 0,
-          allrounder_count: 0,
-          wicketkeeper_count: 0,
           pre_auction_submitted: true,
           pre_auction_submitted_at: submittedAt
         })), { onConflict: 'team_id', ignoreDuplicates: false });
@@ -500,31 +454,16 @@ class SupabaseAuctionService {
       
       console.log('Players reset (captains/vice-captains preserved)');
 
-      // 3. Reset team budgets and counts
-      // Note: This resets to initial values. Captain/vice-captain costs will be
-      // recalculated when data is loaded from the database
+      // 3. Reset each team's purse to the full budget. Captain/vice-captain
+      // costs are zero, so the full budget is also the auction starting purse.
       const { error: teamsError } = await supabase
         .from('teams')
-        .update({
-          tokens_left: CPL_2026.auctionBudget,
-          batsman_budget_spent: 0,
-          batsman_budget_remaining: CPL_2026.maxBidByCategory['Batsman'],
-          bowler_budget_spent: 0,
-          bowler_budget_remaining: CPL_2026.maxBidByCategory['Bowler'],
-          allrounder_budget_spent: 0,
-          allrounder_budget_remaining: CPL_2026.maxBidByCategory['All-rounder'],
-          wicketkeeper_budget_spent: 0,
-          wicketkeeper_budget_remaining: CPL_2026.maxBidByCategory['WicketKeeper'],
-          batsman_count: 0,
-          bowler_count: 0,
-          allrounder_count: 0,
-          wicketkeeper_count: 0
-        })
+        .update({ tokens_left: CPL_2026.auctionBudget })
         .neq('id', 0);
 
       if (teamsError) throw teamsError;
-      
-      console.log('Team budgets reset to initial values');
+
+      console.log('Team purses reset to the full budget');
 
       // 4. Reset auction state
       const { error: stateError } = await supabase
