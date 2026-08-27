@@ -9,12 +9,15 @@ import { AUCTION_POOL_SIZE } from '../../config/teams2026';
 const AuctionFormat = ({ rules = CPL_2026, poolSize = AUCTION_POOL_SIZE }) => {
   const auctionSlots = rules.defaultSquadSize - rules.preAuctionSlots.total;
 
+  // "free" previously meant "costs no coins" but read as "vacant", and "won at
+  // the auction" described an event that has not happened yet. Both now say
+  // plainly what is already settled and what is still to play for.
   const headline = [
-    { value: poolSize, label: 'Players in the pool' },
+    { value: poolSize, label: 'Players up for auction' },
     { value: rules.auctionBudget.toLocaleString(), label: 'Coins per team' },
-    { value: rules.defaultSquadSize, label: 'Players per squad' },
-    { value: rules.preAuctionSlots.total, label: 'Pre-auction slots (free)' },
-    { value: auctionSlots, label: 'Won at the auction' }
+    { value: rules.defaultSquadSize, label: 'Squad size' },
+    { value: rules.preAuctionSlots.total, label: 'Already signed, no coins spent' },
+    { value: auctionSlots, label: 'Places still to fill' }
   ];
 
   return (

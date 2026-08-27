@@ -32,7 +32,7 @@ describe('PreAuctionShowcase', () => {
 
   it('publishes the auction pool size', () => {
     expect(html).toContain(String(AUCTION_POOL_SIZE));
-    expect(html).toContain('Players in the pool');
+    expect(html).toContain('Players up for auction');
   });
 
   it('badges the defending champion', () => {
