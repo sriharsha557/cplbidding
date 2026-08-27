@@ -51,6 +51,8 @@ const teamValues = teams.map(t => `  (${[
   q(t.TeamID), q(t.TeamName), q(t.LogoFile || null), BUDGET, BUDGET, SQUAD_SIZE
 ].join(', ')})`).join(',\n');
 
+const playerIdList = players.map(p => q(p.PlayerID)).join(', ');
+
 const playerValues = players.map(p => `  (${[
   q(p.PlayerID), q(p.Name), q(p.Role), Number(p.BaseTokens) || 0,
   q(p.PhotoFileName || null), q(p.Department || null),
@@ -69,11 +71,23 @@ fs.writeFileSync(SQL_OUT, `-- CPL 2026 pre-auction squads: ${teams.length} teams
 --
 -- Run this BEFORE the auction pool insert.
 
+BEGIN;
+
 INSERT INTO teams (team_id, team_name, logo_file, tokens_left, max_tokens, max_squad_size) VALUES
 ${teamValues}
 ON CONFLICT (team_id) DO UPDATE SET
   team_name = EXCLUDED.team_name,
   logo_file = EXCLUDED.logo_file;
+
+-- Clear existing pre-auction markers before re-asserting them below. Without
+-- this, a captain or vice-captain change between loads collides with the
+-- one_captain_per_team / one_vc_per_team unique indexes: the new captain's row
+-- is upserted while the previous captain still carries pre_auction_role =
+-- 'Captain' for the same team. Safe on a fresh database (matches no rows).
+UPDATE players
+SET pre_auction_role = NULL, is_captain = FALSE, is_vice_captain = FALSE
+WHERE pre_auction_role IS NOT NULL
+   OR player_id IN (${playerIdList});
 
 INSERT INTO players (
   player_id, name, role, base_tokens, photo_filename, department,
@@ -91,6 +105,8 @@ ON CONFLICT (player_id) DO UPDATE SET
   is_vice_captain  = EXCLUDED.is_vice_captain,
   status           = 'PreAuction',
   sold_price       = 0;
+
+COMMIT;
 `, 'utf8');
 
 const perTeam = players.reduce((a, p) => ({ ...a, [p.TeamName]: (a[p.TeamName] || 0) + 1 }), {});
