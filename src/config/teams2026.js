@@ -38,6 +38,21 @@ export const PRE_AUCTION_STATUS = {
   viceCaptainsSet: true
 };
 
+/**
+ * Auction start announcement for the public page.
+ *
+ * The banner reads "today" on the day itself and names the weekday otherwise,
+ * so it stays correct if anyone opens the page tomorrow. Set `date` to null to
+ * announce a time without committing to a day.
+ */
+export const AUCTION_LIVE = {
+  date: '2026-08-27',
+  time: '5:30 PM',
+  timezone: 'IST',
+  venue: '5th floor canteen',
+  note: 'Join us there, or stay on this page for live updates.'
+};
+
 export const DEFENDING_CHAMPION_SEASON = 2025;
 
 /**
