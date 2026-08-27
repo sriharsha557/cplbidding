@@ -36,3 +36,19 @@ describe('category budgets are rebased on the 2026 budget', () => {
     expect(CPL_2026.advisoryCategorySpend).toBeUndefined();
   });
 });
+
+describe('squad size', () => {
+  it('is 14 for 2026', () => {
+    expect(CPL_2026.defaultSquadSize).toBe(14);
+  });
+
+  it('leaves nine places to be won at the auction', () => {
+    expect(CPL_2026.defaultSquadSize - CPL_2026.preAuctionSlots.total).toBe(9);
+  });
+
+  it('can still satisfy every category minimum', () => {
+    const { CPL_CATEGORY_BUDGETS } = require('../utils/auctionUtils');
+    const minTotal = Object.values(CPL_CATEGORY_BUDGETS).reduce((s, b) => s + b.minPlayers, 0);
+    expect(minTotal).toBeLessThanOrEqual(CPL_2026.defaultSquadSize);
+  });
+});

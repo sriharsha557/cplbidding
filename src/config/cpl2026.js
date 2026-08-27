@@ -25,7 +25,7 @@ export const CPL_2026 = {
     total: 5
   },
 
-  defaultSquadSize: 15,
+  defaultSquadSize: 14,
 
   submissionDeadline: '2026-08-17',
 

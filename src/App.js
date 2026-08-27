@@ -25,7 +25,7 @@ function App() {
     auctionHistory: [],
     unsoldPlayers: [],
     maxTokens: CPL_2026.auctionBudget,
-    maxSquadSize: 15
+    maxSquadSize: CPL_2026.defaultSquadSize
   });
 
   const [currentView, setCurrentView] = useState('home'); // 'home' or 'admin'
@@ -193,7 +193,7 @@ function App() {
           auctionHistory: [],
           unsoldPlayers: [],
           maxTokens: CPL_2026.auctionBudget,
-          maxSquadSize: 15
+          maxSquadSize: CPL_2026.defaultSquadSize
         });
 
         

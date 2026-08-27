@@ -20,7 +20,9 @@ const path = require('path');
 const WORKBOOK = path.join('data', 'CPL_2026_PreAuction_Template.xlsx');
 const SQL_OUT = path.join('sql', '2026_pre_auction_insert.sql');
 const BUDGET = 1000;
-const SQUAD_SIZE = 15;
+// Mirrors CPL_2026.defaultSquadSize in src/config/cpl2026.js; a node script
+// cannot import that ES module, so keep the two in step by hand.
+const SQUAD_SIZE = 14;
 
 const q = v => (v === null || v === undefined || v === '' ? 'NULL' : `'${String(v).replace(/'/g, "''")}'`);
 

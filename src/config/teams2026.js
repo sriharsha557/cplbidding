@@ -60,7 +60,7 @@ export const DEFENDING_CHAMPION_SEASON = 2025;
  * 4YVM is removed as a duplicate registration of a retained Vice-Captain.
  * Keep in step with scripts/export_auction_players_from_cpl2026.js.
  */
-export const AUCTION_POOL_SIZE = 65;
+export const AUCTION_POOL_SIZE = 67;
 
 /**
  * Whole days from `today` until the ownership deadline.
