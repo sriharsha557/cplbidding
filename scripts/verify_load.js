@@ -13,6 +13,8 @@ const XLSX = require('xlsx');
 const fs = require('fs');
 const path = require('path');
 
+const EOL = String.fromCharCode(10);
+
 const env = Object.fromEntries(
   fs.readFileSync('.env.local', 'utf8').split(/\r?\n/)
     .filter(l => l.includes('=') && !l.startsWith('#'))
@@ -52,6 +54,16 @@ const sheet = (file, name) => XLSX.utils.sheet_to_json(XLSX.readFile(file).Sheet
   const unexpected = players.filter(p => !expected.has(p.player_id.toLowerCase()));
   check('rows not in either export', unexpected.length, 0);
 
+  // player_id is case-sensitive in Postgres, so 6ljx and 6LJX are two rows.
+  // A corrected id upserts alongside the old one instead of replacing it.
+  const byLower = players.reduce((a, p) => {
+    const k = p.player_id.toLowerCase();
+    (a[k] = a[k] || []).push(p.player_id);
+    return a;
+  }, {});
+  const caseDupes = Object.entries(byLower).filter(([, ids]) => ids.length > 1);
+  check('ids duplicated by letter case', caseDupes.length, 0);
+
   const inDb = new Set(players.map(p => p.player_id.toLowerCase()));
   check('exported rows missing from db', [...expected].filter(i => !inDb.has(i)).length, 0);
 
@@ -72,6 +84,10 @@ const sheet = (file, name) => XLSX.utils.sheet_to_json(XLSX.readFile(file).Sheet
   if (retainedLoose.length) {
     console.log('\nretained players that would be auctioned:');
     retainedLoose.slice(0, 10).forEach(p => console.log(`  ${p.player_id}  ${p.name}`));
+  }
+  if (caseDupes.length) {
+    console.log(EOL + 'same player under two ids:');
+    caseDupes.forEach(([, ids]) => console.log(`  ${ids.join('  vs  ')}`));
   }
   if (unexpected.length) {
     console.log('\nrows in the database that no export produced:');
