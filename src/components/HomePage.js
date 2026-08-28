@@ -5,14 +5,22 @@ import TeamDashboard from './TeamDashboard';
 import CategoryProgress from './CategoryProgress';
 import AuctionProgress from './AuctionProgress';
 import PreAuctionShowcase from './preauction/PreAuctionShowcase';
+import LeaguePhaseShowcase from './season/LeaguePhaseShowcase';
 import { CPL_2026 } from '../config/cpl2026';
-import { TEAMS_2026, AUCTION_POOL_SIZE } from '../config/teams2026';
+import { TEAMS_2026, AUCTION_POOL_SIZE, SEASON_PHASE } from '../config/teams2026';
+import { TOTAL_MATCHES } from '../config/schedule2026';
 
 const tabs = [
   { id: 'overview', label: 'Overview' },
   { id: 'teams', label: 'Teams' },
   { id: 'progress', label: 'Progress' },
   { id: 'leaderboard', label: 'Leaderboard' }
+];
+
+const leagueTabs = [
+  { id: 'squads', label: 'Squads' },
+  { id: 'pools', label: 'Pools' },
+  { id: 'schedule', label: 'Schedule' }
 ];
 
 const Stat = ({ value, label, accent = 'gold' }) => (
@@ -32,8 +40,9 @@ const SectionHeading = ({ eyebrow, title, children }) => (
   </div>
 );
 
-function HomePage({ auctionState }) {
-  const [activeView, setActiveView] = useState('overview');
+function HomePage({ auctionState, phase = SEASON_PHASE }) {
+  const isLeague = phase === 'league';
+  const [activeView, setActiveView] = useState(isLeague ? 'squads' : 'overview');
   const [currentTime, setCurrentTime] = useState(new Date());
   const {
     auctionStarted,
@@ -96,20 +105,22 @@ function HomePage({ auctionState }) {
             <span>Colruyt Group presents</span>
             <span className="cpl-hero__topline-right">
               <span className="cpl-season">Season 2026</span>
-              <span className={`cpl-live-pill ${auctionStarted ? '' : 'cpl-live-pill--waiting'}`}>
+              <span className={`cpl-live-pill ${auctionStarted && !isLeague ? '' : 'cpl-live-pill--waiting'}`}>
                 <i />
-                {auctionStarted ? 'Live updates' : 'Awaiting auction start'}
+                {isLeague ? 'League phase' : auctionStarted ? 'Live updates' : 'Awaiting auction start'}
               </span>
             </span>
           </div>
           <div className="cpl-title-row">
             <div>
               <p className="cpl-eyebrow">Colruyt Premier League</p>
-              <h1>{auctionStarted ? 'Live Auction' : 'Auction Centre'}</h1>
+              <h1>{isLeague ? 'The 2026 Season' : auctionStarted ? 'Live Auction' : 'Auction Centre'}</h1>
               <p className="cpl-hero__description">
-                {auctionStarted
-                  ? 'Every bid. Every squad. Live as it happens.'
-                  : 'The squad-building room for the 2026 season.'}
+                {isLeague
+                  ? 'Final squads, the two pools, and every fixture on the road to the trophy.'
+                  : auctionStarted
+                    ? 'Every bid. Every squad. Live as it happens.'
+                    : 'The squad-building room for the 2026 season.'}
               </p>
             </div>
           </div>
@@ -123,19 +134,39 @@ function HomePage({ auctionState }) {
           </div>
 
           <div className="cpl-scoreboard">
-            <Stat value={teamCount} label="Teams ready" accent="mint" />
-            <Stat value={poolCount} label="Players in pool" />
-            <Stat value={auctionStarted ? `${totalProcessed}/${poolCount}` : `${(maxTokens * teamCount).toLocaleString()}`} label={auctionStarted ? 'Players processed' : 'Total tokens'} accent="coral" />
-            <Stat value={isComplete ? 'Complete' : currentPhase ? `Phase ${currentPhase.phase}/4` : 'On deck'} label={isComplete ? 'Auction status' : 'Current stage'} accent="lavender" />
+            {isLeague ? (
+              <>
+                <Stat value={teamCount} label="Teams" accent="mint" />
+                <Stat value={2} label="Pools" />
+                <Stat value={TOTAL_MATCHES} label="Matches" accent="coral" />
+                <Stat value="12 Sep" label="Season starts" accent="lavender" />
+              </>
+            ) : (
+              <>
+                <Stat value={teamCount} label="Teams ready" accent="mint" />
+                <Stat value={poolCount} label="Players in pool" />
+                <Stat value={auctionStarted ? `${totalProcessed}/${poolCount}` : `${(maxTokens * teamCount).toLocaleString()}`} label={auctionStarted ? 'Players processed' : 'Total tokens'} accent="coral" />
+                <Stat value={isComplete ? 'Complete' : currentPhase ? `Phase ${currentPhase.phase}/4` : 'On deck'} label={isComplete ? 'Auction status' : 'Current stage'} accent="lavender" />
+              </>
+            )}
           </div>
         </div>
       </section>
 
       <section className="cpl-content cpl-container">
-        {auctionStarted && (
-          <nav className="cpl-tabs" aria-label="Auction views">
-            {tabs.map(tab => (
-              <button key={tab.id} onClick={() => setActiveView(tab.id)} className={activeView === tab.id ? 'is-active' : ''}>
+        {(auctionStarted || isLeague) && (
+          <nav className="cpl-tabs" aria-label={isLeague ? 'Season views' : 'Auction views'}>
+            {(isLeague ? leagueTabs : tabs).map(tab => (
+              <button
+                key={tab.id}
+                onClick={() => {
+                  setActiveView(tab.id);
+                  if (isLeague && typeof document !== 'undefined') {
+                    document.getElementById(`cpl-section-${tab.id}`)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                  }
+                }}
+                className={activeView === tab.id ? 'is-active' : ''}
+              >
                 {tab.label}
               </button>
             ))}
@@ -143,8 +174,10 @@ function HomePage({ auctionState }) {
         )}
 
         <AnimatePresence mode="wait">
-          <motion.div key={auctionStarted ? activeView : 'waiting'} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} transition={{ duration: 0.2 }}>
-            {!auctionStarted && (
+          <motion.div key={isLeague ? 'league' : auctionStarted ? activeView : 'waiting'} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} transition={{ duration: 0.2 }}>
+            {isLeague && <LeaguePhaseShowcase />}
+
+            {!isLeague && !auctionStarted && (
               <section className="cpl-waiting-card">
                 <div className="cpl-waiting-card__marker">2026</div>
                 <div>
@@ -156,9 +189,9 @@ function HomePage({ auctionState }) {
               </section>
             )}
 
-            {!auctionStarted && <PreAuctionShowcase />}
+            {!isLeague && !auctionStarted && <PreAuctionShowcase />}
 
-            {auctionStarted && activeView === 'overview' && (
+            {!isLeague && auctionStarted && activeView === 'overview' && (
               <>
                 {isComplete ? (
                   <section className="cpl-complete-card">
@@ -192,14 +225,14 @@ function HomePage({ auctionState }) {
               </>
             )}
 
-            {auctionStarted && activeView === 'teams' && <section className="cpl-panel"><SectionHeading eyebrow="Squad tracker" title="Team status" /><TeamDashboard teams={teams} /></section>}
-            {auctionStarted && activeView === 'progress' && <section className="cpl-panel"><SectionHeading eyebrow="Auction tracker" title="Category progress" /><CategoryProgress players={players} currentPlayerIdx={currentPlayerIdx} teams={teams} auctionHistory={auctionHistory} /><div className="cpl-panel__spacer"><AuctionProgress players={players} currentPlayerIdx={currentPlayerIdx} auctionHistory={auctionHistory} unsoldPlayers={unsoldPlayers} isComplete={isComplete} /></div></section>}
-            {auctionStarted && activeView === 'leaderboard' && <section className="cpl-panel"><SectionHeading eyebrow="Biggest moves" title="Leaderboard" /><div className="cpl-leaderboard">{teamStats.length ? teamStats.map((team, index) => <div className="cpl-leaderboard__row" key={team.name}><span className="cpl-leaderboard__rank">{String(index + 1).padStart(2, '0')}</span><div><strong>{team.name}</strong><small>{team.players} players · Avg. {team.avgPrice} tokens</small></div><div><strong>{team.tokensSpent.toLocaleString()}</strong><small>tokens spent</small></div><div><strong>{team.tokensLeft.toLocaleString()}</strong><small>remaining</small></div></div>) : <div className="cpl-empty"><h2>No team data yet</h2><p>The leaderboard will populate when team data is available.</p></div>}</div></section>}
+            {!isLeague && auctionStarted && activeView === 'teams' && <section className="cpl-panel"><SectionHeading eyebrow="Squad tracker" title="Team status" /><TeamDashboard teams={teams} /></section>}
+            {!isLeague && auctionStarted && activeView === 'progress' && <section className="cpl-panel"><SectionHeading eyebrow="Auction tracker" title="Category progress" /><CategoryProgress players={players} currentPlayerIdx={currentPlayerIdx} teams={teams} auctionHistory={auctionHistory} /><div className="cpl-panel__spacer"><AuctionProgress players={players} currentPlayerIdx={currentPlayerIdx} auctionHistory={auctionHistory} unsoldPlayers={unsoldPlayers} isComplete={isComplete} /></div></section>}
+            {!isLeague && auctionStarted && activeView === 'leaderboard' && <section className="cpl-panel"><SectionHeading eyebrow="Biggest moves" title="Leaderboard" /><div className="cpl-leaderboard">{teamStats.length ? teamStats.map((team, index) => <div className="cpl-leaderboard__row" key={team.name}><span className="cpl-leaderboard__rank">{String(index + 1).padStart(2, '0')}</span><div><strong>{team.name}</strong><small>{team.players} players · Avg. {team.avgPrice} tokens</small></div><div><strong>{team.tokensSpent.toLocaleString()}</strong><small>tokens spent</small></div><div><strong>{team.tokensLeft.toLocaleString()}</strong><small>remaining</small></div></div>) : <div className="cpl-empty"><h2>No team data yet</h2><p>The leaderboard will populate when team data is available.</p></div>}</div></section>}
           </motion.div>
         </AnimatePresence>
       </section>
 
-      <footer className="cpl-footer"><div className="cpl-container"><span>Colruyt Premier League</span><span>2026 season</span><span>{auctionStarted ? `Updated ${currentTime.toLocaleTimeString()}` : 'Live updates enabled'}</span></div></footer>
+      <footer className="cpl-footer"><div className="cpl-container"><span>Colruyt Premier League</span><span>2026 season</span><span>{isLeague ? 'Season begins 12 September' : auctionStarted ? `Updated ${currentTime.toLocaleTimeString()}` : 'Live updates enabled'}</span></div></footer>
     </main>
   );
 }

@@ -56,6 +56,17 @@ export const AUCTION_LIVE = {
 export const DEFENDING_CHAMPION_SEASON = 2025;
 
 /**
+ * Which stage of the season the public page shows. Hand-flipped, deliberately
+ * not derived from live auction state — a page linked company-wide must render
+ * the same thing whether or not Supabase is reachable.
+ *
+ *   'preauction' — team line-up, road-to-auction, auction format
+ *   'auction'    — live bidding board (also auto-engages once players sell)
+ *   'league'     — final squads, pools and the match schedule
+ */
+export const SEASON_PHASE = 'league';
+
+/**
  * Registered players contesting the auction, after blank rows are dropped and
  * 4YVM is removed as a duplicate registration of a retained Vice-Captain.
  * Keep in step with scripts/export_auction_players_from_cpl2026.js.

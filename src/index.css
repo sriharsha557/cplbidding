@@ -196,6 +196,57 @@ body {
   .cpl-format__stats { grid-template-columns: repeat(2, 1fr); }
 }
 
+/* --- League phase: pools, schedule, squads (shown once the auction is done) --- */
+.cpl-pool-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 18px; }
+.cpl-pool { padding: 18px; border: 1px solid #e6e4dd; border-radius: 10px; background: #fcfbf7; }
+.cpl-pool__name { margin: 0 0 14px; color: #b4791a; font-size: 12px; font-weight: 800; letter-spacing: .12em; text-transform: uppercase; }
+.cpl-pool__teams { margin: 0; padding: 0; list-style: none; display: grid; gap: 8px; }
+.cpl-pool__team { display: flex; align-items: center; gap: 12px; padding: 10px 12px; border: 1px solid #e6e4dd; border-radius: 8px; background: #fff; }
+.cpl-pool__team strong { display: block; color: #173d49; font-size: 14px; }
+.cpl-pool__team small { display: block; margin-top: 2px; color: #849096; font-size: 11px; }
+.cpl-pool__crest { display: grid; place-items: center; width: 40px; height: 40px; flex-shrink: 0; border-radius: 50%; background: #fff; border: 1px solid #e6e4dd; overflow: hidden; }
+.cpl-pool__crest img { width: 100%; height: 100%; object-fit: contain; padding: 4px; }
+.cpl-pool__badge { margin-left: auto; flex-shrink: 0; padding: 3px 9px; border-radius: 999px; background: rgba(241,197,102,.24); color: #8a5c12; font-size: 10px; font-weight: 800; }
+
+.cpl-schedule { display: grid; gap: 18px; }
+.cpl-schedule__day { border: 1px solid #e6e4dd; border-radius: 10px; background: #fcfbf7; overflow: hidden; }
+.cpl-schedule__day-head { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; padding: 14px 18px; background: #173d49; color: #fff; }
+.cpl-schedule__day-head strong { font-size: 15px; }
+.cpl-schedule__day-head span { color: #f1c566; font-size: 11px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; }
+.cpl-schedule__pool { padding: 12px 18px; }
+.cpl-schedule__pool h4 { margin: 0 0 8px; color: #b4791a; font-size: 11px; font-weight: 800; letter-spacing: .1em; text-transform: uppercase; }
+.cpl-schedule__table { width: 100%; border-collapse: collapse; font-size: 13px; }
+.cpl-schedule__table th { padding: 6px 10px; color: #849096; font-size: 10px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; text-align: left; border-bottom: 1px solid #e6e4dd; }
+.cpl-schedule__table td { padding: 8px 10px; color: #263840; border-bottom: 1px solid #eeece4; }
+.cpl-schedule__table tr:last-child td { border-bottom: 0; }
+.cpl-schedule__day > .cpl-schedule__table { padding: 6px 8px 10px; }
+
+.cpl-squad-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 14px; }
+.cpl-squad-card { border: 1px solid #e6e4dd; border-radius: 10px; background: #fcfbf7; overflow: hidden; }
+.cpl-squad-card.is-open { border-color: #f1c566; }
+.cpl-squad-card__head { display: flex; align-items: center; gap: 12px; width: 100%; padding: 14px 16px; border: 0; background: transparent; cursor: pointer; text-align: left; }
+.cpl-squad-card__head strong { display: block; color: #173d49; font-size: 15px; }
+.cpl-squad-card__head small { display: block; margin-top: 2px; color: #849096; font-size: 11px; }
+.cpl-squad-card__crest { display: grid; place-items: center; width: 44px; height: 44px; flex-shrink: 0; border-radius: 50%; background: #fff; border: 1px solid #e6e4dd; overflow: hidden; }
+.cpl-squad-card__crest img { width: 100%; height: 100%; object-fit: contain; padding: 4px; }
+.cpl-squad-card__chevron { margin-left: auto; flex-shrink: 0; width: 24px; height: 24px; display: grid; place-items: center; border-radius: 6px; background: #eceae2; color: #65727a; font-weight: 800; }
+.cpl-squad__list { margin: 0; padding: 0 8px 8px; list-style: none; overflow: hidden; }
+.cpl-squad__player { display: grid; grid-template-columns: 30px 1fr auto; gap: 10px; align-items: center; padding: 8px 8px; border-top: 1px solid #eeece4; }
+.cpl-squad__avatar { display: grid; place-items: center; width: 30px; height: 30px; border-radius: 50%; overflow: hidden; background: #eef1ee; font-size: 13px; }
+.cpl-squad__avatar img { width: 100%; height: 100%; object-fit: cover; }
+.cpl-squad__name { color: #263840; font-size: 13px; }
+.cpl-squad__lead { margin-left: 7px; padding: 1px 6px; border-radius: 999px; background: #173d49; color: #f1c566; font-size: 9px; font-weight: 800; letter-spacing: .04em; }
+.cpl-squad__role { grid-column: 2; color: #849096; font-size: 11px; }
+.cpl-squad__price { color: #8e5a05; font-size: 12px; font-weight: 700; white-space: nowrap; }
+
+@media (max-width: 900px) {
+  .cpl-pool-grid, .cpl-squad-grid { grid-template-columns: 1fr; }
+}
+@media (max-width: 560px) {
+  .cpl-schedule__table { font-size: 12px; }
+  .cpl-schedule__table th:nth-child(3), .cpl-schedule__table td:nth-child(3) { display: none; }
+}
+
 /* Registration note on the live auction player card */
 .player-card__note { margin-top: 12px; padding: 9px 12px; border-radius: 8px; background: rgba(255,255,255,.14); font-size: 13px; line-height: 1.45; text-align: left; }
 .cpl-player-card__note { margin: 0 0 14px; padding: 10px 13px; border-left: 3px solid #f1c566; border-radius: 0 8px 8px 0; background: #fdf8ec; color: #6b5730; font-size: 14px; line-height: 1.5; }
