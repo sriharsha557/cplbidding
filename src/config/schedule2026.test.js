@@ -22,13 +22,20 @@ describe('SCHEDULE_2026', () => {
     });
   });
 
-  it('splits each league Saturday two matches per pool', () => {
-    ['2026-09-12', '2026-09-19', '2026-09-26'].forEach(date => {
-      const day = SCHEDULE_2026.filter(m => m.date === date);
-      expect(day).toHaveLength(4);
-      expect(day.filter(m => m.pool === 'Pool A')).toHaveLength(2);
-      expect(day.filter(m => m.pool === 'Pool B')).toHaveLength(2);
+  it('plays the league across the four September dates', () => {
+    const byDate = SCHEDULE_2026
+      .filter(m => m.stage === 'League')
+      .reduce((acc, m) => ({ ...acc, [m.date]: (acc[m.date] || 0) + 1 }), {});
+    expect(byDate).toEqual({
+      '2026-09-12': 4, '2026-09-19': 3, '2026-09-20': 1, '2026-09-26': 4
     });
+  });
+
+  it('flags Match 8 (Pirates v Digi Titans) as tentative', () => {
+    const m8 = SCHEDULE_2026.find(m => m.matchNo === 8);
+    expect(m8.tentative).toBe(true);
+    expect(m8.date).toBe('2026-09-20');
+    expect(SCHEDULE_2026.filter(m => m.tentative)).toHaveLength(1);
   });
 
   it('runs a full single round-robin per pool (each team plays the other three)', () => {
@@ -60,12 +67,13 @@ describe('SCHEDULE_2026', () => {
     });
   });
 
-  it('groups by date for rendering, newest published grid order', () => {
+  it('groups by date for rendering, in published grid order', () => {
     expect(SCHEDULE_BY_DATE.map(d => d.date)).toEqual([
-      '2026-09-12', '2026-09-19', '2026-09-26', '2026-10-03', '2026-10-04'
+      '2026-09-12', '2026-09-19', '2026-09-20', '2026-09-26', '2026-10-03', '2026-10-04'
     ]);
     expect(SCHEDULE_BY_DATE[0].pools.map(p => p.pool)).toEqual(['Pool A', 'Pool B']);
-    expect(SCHEDULE_BY_DATE[4].pools).toBeNull();
+    expect(SCHEDULE_BY_DATE.find(d => d.date === '2026-09-20').tentative).toBe(true);
+    expect(SCHEDULE_BY_DATE.find(d => d.date === '2026-10-04').pools).toBeNull();
   });
 
   it('scheduleTeam returns null for a TBD slot', () => {

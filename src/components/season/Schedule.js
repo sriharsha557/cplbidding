@@ -42,7 +42,7 @@ const Schedule = ({ days = SCHEDULE_BY_DATE }) => (
       {days.map(day => (
         <article className="cpl-schedule__day" key={day.date}>
           <header className="cpl-schedule__day-head">
-            <strong>{day.label}</strong>
+            <strong>{day.label}{day.tentative ? ' · date TBC' : ''}</strong>
             <span>{day.stage}{day.matches[0].venue && day.matches[0].venue !== 'TBD' ? ` · ${day.matches[0].venue}` : ''}</span>
           </header>
 

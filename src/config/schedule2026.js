@@ -1,38 +1,37 @@
 import { TEAMS_2026 } from './teams2026';
 
 /**
- * CPL 2026 match schedule.
+ * CPL 2026 match schedule — the fixture list as published by the organisers.
  *
- * League match-ups follow the standard 4-team round-robin over the pool seeding
- * in pools2026.js: round 1 is 1v2 / 3v4, round 2 is 1v3 / 2v4, round 3 is
- * 1v4 / 2v3. Pool A plays on ground 1, Pool B on ground 2, in the same slots.
- * Knockout slots stay null with a `note` until the league table decides them.
+ * Each pool plays a single round-robin (six matches). Most rounds run two
+ * matches per pool on a Saturday; Pirates XI v DIGI TITANS (Match 8) sits on
+ * its own tentative date. Knockout slots stay null with a `note` until the
+ * league table decides them.
  */
 const LEAGUE_VENUE = '';       // TBD — league ground not yet named
 const KNOCKOUT_VENUE = 'Centurion';
 const SLOT_1 = '11:00–13:30';
 const SLOT_2 = '14:30–17:00';
 
-// team ids by pool seed, kept in step with pools2026.js
-const A = ['CPL_T04', 'CPL_T07', 'CPL_T05', 'CPL_T03'];
-const B = ['CPL_T06', 'CPL_T08', 'CPL_T01', 'CPL_T02'];
+const T = Object.fromEntries(TEAMS_2026.map(t => [t.name, t.id]));
 
 export const SCHEDULE_2026 = [
-  // --- 12 September: round 1 (1v2, 3v4) ---
-  { matchNo: 1,  stage: 'League', pool: 'Pool A', date: '2026-09-12', time: SLOT_1, overs: 15, venue: LEAGUE_VENUE, teamA: A[0], teamB: A[1] },
-  { matchNo: 2,  stage: 'League', pool: 'Pool A', date: '2026-09-12', time: SLOT_2, overs: 15, venue: LEAGUE_VENUE, teamA: A[2], teamB: A[3] },
-  { matchNo: 3,  stage: 'League', pool: 'Pool B', date: '2026-09-12', time: SLOT_1, overs: 15, venue: LEAGUE_VENUE, teamA: B[0], teamB: B[1] },
-  { matchNo: 4,  stage: 'League', pool: 'Pool B', date: '2026-09-12', time: SLOT_2, overs: 15, venue: LEAGUE_VENUE, teamA: B[2], teamB: B[3] },
-  // --- 19 September: round 2 (1v3, 2v4) ---
-  { matchNo: 5,  stage: 'League', pool: 'Pool A', date: '2026-09-19', time: SLOT_1, overs: 15, venue: LEAGUE_VENUE, teamA: A[0], teamB: A[2] },
-  { matchNo: 6,  stage: 'League', pool: 'Pool A', date: '2026-09-19', time: SLOT_2, overs: 15, venue: LEAGUE_VENUE, teamA: A[1], teamB: A[3] },
-  { matchNo: 7,  stage: 'League', pool: 'Pool B', date: '2026-09-19', time: SLOT_1, overs: 15, venue: LEAGUE_VENUE, teamA: B[0], teamB: B[2] },
-  { matchNo: 8,  stage: 'League', pool: 'Pool B', date: '2026-09-19', time: SLOT_2, overs: 15, venue: LEAGUE_VENUE, teamA: B[1], teamB: B[3] },
-  // --- 26 September: round 3 (1v4, 2v3) ---
-  { matchNo: 9,  stage: 'League', pool: 'Pool A', date: '2026-09-26', time: SLOT_1, overs: 15, venue: LEAGUE_VENUE, teamA: A[0], teamB: A[3] },
-  { matchNo: 10, stage: 'League', pool: 'Pool A', date: '2026-09-26', time: SLOT_2, overs: 15, venue: LEAGUE_VENUE, teamA: A[1], teamB: A[2] },
-  { matchNo: 11, stage: 'League', pool: 'Pool B', date: '2026-09-26', time: SLOT_1, overs: 15, venue: LEAGUE_VENUE, teamA: B[0], teamB: B[3] },
-  { matchNo: 12, stage: 'League', pool: 'Pool B', date: '2026-09-26', time: SLOT_2, overs: 15, venue: LEAGUE_VENUE, teamA: B[1], teamB: B[2] },
+  // --- 12 September ---
+  { matchNo: 1,  stage: 'League', pool: 'Pool A', date: '2026-09-12', time: SLOT_1, overs: 15, venue: LEAGUE_VENUE, teamA: T['Quality Strikers'], teamB: T['Hits & Misses'] },
+  { matchNo: 2,  stage: 'League', pool: 'Pool A', date: '2026-09-12', time: SLOT_2, overs: 15, venue: LEAGUE_VENUE, teamA: T['Mavericks'], teamB: T['CSK'] },
+  { matchNo: 3,  stage: 'League', pool: 'Pool B', date: '2026-09-12', time: SLOT_1, overs: 15, venue: LEAGUE_VENUE, teamA: T['Pirates'], teamB: T['Avengers'] },
+  { matchNo: 4,  stage: 'League', pool: 'Pool B', date: '2026-09-12', time: SLOT_2, overs: 15, venue: LEAGUE_VENUE, teamA: T['Digititans'], teamB: T['Fearless Falcons'] },
+  // --- 19 September ---
+  { matchNo: 5,  stage: 'League', pool: 'Pool A', date: '2026-09-19', time: SLOT_1, overs: 15, venue: LEAGUE_VENUE, teamA: T['Mavericks'], teamB: T['Quality Strikers'] },
+  { matchNo: 6,  stage: 'League', pool: 'Pool A', date: '2026-09-19', time: SLOT_2, overs: 15, venue: LEAGUE_VENUE, teamA: T['CSK'], teamB: T['Hits & Misses'] },
+  { matchNo: 7,  stage: 'League', pool: 'Pool B', date: '2026-09-19', time: SLOT_1, overs: 15, venue: LEAGUE_VENUE, teamA: T['Avengers'], teamB: T['Fearless Falcons'] },
+  // --- 20 September (tentative) ---
+  { matchNo: 8,  stage: 'League', pool: 'Pool B', date: '2026-09-20', time: SLOT_1, overs: 15, venue: LEAGUE_VENUE, teamA: T['Pirates'], teamB: T['Digititans'], tentative: true },
+  // --- 26 September ---
+  { matchNo: 9,  stage: 'League', pool: 'Pool A', date: '2026-09-26', time: SLOT_1, overs: 15, venue: LEAGUE_VENUE, teamA: T['Mavericks'], teamB: T['Hits & Misses'] },
+  { matchNo: 10, stage: 'League', pool: 'Pool A', date: '2026-09-26', time: SLOT_2, overs: 15, venue: LEAGUE_VENUE, teamA: T['CSK'], teamB: T['Quality Strikers'] },
+  { matchNo: 11, stage: 'League', pool: 'Pool B', date: '2026-09-26', time: SLOT_1, overs: 15, venue: LEAGUE_VENUE, teamA: T['Pirates'], teamB: T['Fearless Falcons'] },
+  { matchNo: 12, stage: 'League', pool: 'Pool B', date: '2026-09-26', time: SLOT_2, overs: 15, venue: LEAGUE_VENUE, teamA: T['Digititans'], teamB: T['Avengers'] },
   // --- 3 October: semi-finals (Centurion) ---
   { matchNo: 13, stage: 'Semi Final', label: 'Semi Final 1', date: '2026-10-03', time: '11:00–14:00', overs: 20, venue: KNOCKOUT_VENUE, teamA: null, teamB: null, note: 'Pool A winner v Pool B runner-up' },
   { matchNo: 14, stage: 'Semi Final', label: 'Semi Final 2', date: '2026-10-03', time: '14:30–17:30', overs: 20, venue: KNOCKOUT_VENUE, teamA: null, teamB: null, note: 'Pool B winner v Pool A runner-up' },
@@ -45,8 +44,8 @@ export const TOTAL_MATCHES = SCHEDULE_2026.length;
 export const SEASON_START = '2026-09-12';
 
 const DATE_LABELS = {
-  '2026-09-12': '12 September', '2026-09-19': '19 September', '2026-09-26': '26 September',
-  '2026-10-03': '3 October', '2026-10-04': '4 October'
+  '2026-09-12': '12 September', '2026-09-19': '19 September', '2026-09-20': '20 September',
+  '2026-09-26': '26 September', '2026-10-03': '3 October', '2026-10-04': '4 October'
 };
 
 /** Team id -> the team object, for renderers. Returns null for TBD slots. */
@@ -57,7 +56,7 @@ export function scheduleTeam(id) {
 /**
  * SCHEDULE_2026 grouped for rendering, one entry per match day, mirroring the
  * published grid: league days carry a mini-table per pool, knockout days a flat
- * list.
+ * list. A day is `tentative` if all its matches are.
  */
 export const SCHEDULE_BY_DATE = Object.entries(
   SCHEDULE_2026.reduce((acc, m) => {
@@ -68,6 +67,7 @@ export const SCHEDULE_BY_DATE = Object.entries(
   date,
   label: DATE_LABELS[date] || date,
   stage: matches[0].stage,
+  tentative: matches.every(m => m.tentative),
   pools: matches.some(m => m.pool)
     ? [...new Set(matches.map(m => m.pool))].map(pool => ({
         pool,
