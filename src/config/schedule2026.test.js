@@ -27,15 +27,14 @@ describe('SCHEDULE_2026', () => {
       .filter(m => m.stage === 'League')
       .reduce((acc, m) => ({ ...acc, [m.date]: (acc[m.date] || 0) + 1 }), {});
     expect(byDate).toEqual({
-      '2026-09-12': 4, '2026-09-19': 3, '2026-09-20': 1, '2026-09-26': 4
+      '2026-09-12': 4, '2026-09-19': 2, '2026-09-20': 2, '2026-09-26': 4
     });
   });
 
-  it('flags Match 8 (Pirates v Digi Titans) as tentative', () => {
-    const m8 = SCHEDULE_2026.find(m => m.matchNo === 8);
-    expect(m8.tentative).toBe(true);
-    expect(m8.date).toBe('2026-09-20');
-    expect(SCHEDULE_2026.filter(m => m.tentative)).toHaveLength(1);
+  it('marks the 20 September matches (6 and 8) tentative', () => {
+    const tentative = SCHEDULE_2026.filter(m => m.tentative);
+    expect(tentative.map(m => m.matchNo).sort()).toEqual([6, 8]);
+    tentative.forEach(m => expect(m.date).toBe('2026-09-20'));
   });
 
   it('runs a full single round-robin per pool (each team plays the other three)', () => {

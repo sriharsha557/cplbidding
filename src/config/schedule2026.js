@@ -3,10 +3,9 @@ import { TEAMS_2026 } from './teams2026';
 /**
  * CPL 2026 match schedule — the fixture list as published by the organisers.
  *
- * Each pool plays a single round-robin (six matches). Most rounds run two
- * matches per pool on a Saturday; Pirates XI v DIGI TITANS (Match 8) sits on
- * its own tentative date. Knockout slots stay null with a `note` until the
- * league table decides them.
+ * Each pool plays a single round-robin (six matches). Matches 6 and 8 were
+ * pushed to a tentative 20 September date; the rest run on the three Saturdays.
+ * Knockout slots stay null with a `note` until the league table decides them.
  */
 const LEAGUE_VENUE = '';       // TBD — league ground not yet named
 const KNOCKOUT_VENUE = 'Centurion';
@@ -23,7 +22,7 @@ export const SCHEDULE_2026 = [
   { matchNo: 4,  stage: 'League', pool: 'Pool B', date: '2026-09-12', time: SLOT_2, overs: 15, venue: LEAGUE_VENUE, teamA: T['Digititans'], teamB: T['Fearless Falcons'] },
   // --- 19 September ---
   { matchNo: 5,  stage: 'League', pool: 'Pool A', date: '2026-09-19', time: SLOT_1, overs: 15, venue: LEAGUE_VENUE, teamA: T['Mavericks'], teamB: T['Quality Strikers'] },
-  { matchNo: 6,  stage: 'League', pool: 'Pool A', date: '2026-09-19', time: SLOT_2, overs: 15, venue: LEAGUE_VENUE, teamA: T['CSK'], teamB: T['Hits & Misses'] },
+  { matchNo: 6,  stage: 'League', pool: 'Pool A', date: '2026-09-20', time: SLOT_2, overs: 15, venue: LEAGUE_VENUE, teamA: T['CSK'], teamB: T['Hits & Misses'], tentative: true },
   { matchNo: 7,  stage: 'League', pool: 'Pool B', date: '2026-09-19', time: SLOT_1, overs: 15, venue: LEAGUE_VENUE, teamA: T['Avengers'], teamB: T['Fearless Falcons'] },
   // --- 20 September (tentative) ---
   { matchNo: 8,  stage: 'League', pool: 'Pool B', date: '2026-09-20', time: SLOT_1, overs: 15, venue: LEAGUE_VENUE, teamA: T['Pirates'], teamB: T['Digititans'], tentative: true },
