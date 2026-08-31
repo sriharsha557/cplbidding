@@ -65,14 +65,14 @@ WITH log (player_id, team_name, sold_price) AS (
     ('8F4M', 'CSK', 160),
     ('PVF0', 'CSK', 85),
     ('6RMK', 'Digititans', 40),
-    ('71hl', 'Digititans', 275),
+    ('71hl', 'Digititans', 280),
     ('9BTD', 'Digititans', 40),
     ('5WR8', 'Digititans', 85),
     ('6FXM', 'Digititans', 240),
     ('7V94', 'Digititans', 45),
     ('7CFH', 'Digititans', 85),
     ('8MTK', 'Digititans', 155),
-    ('5CF2', 'Digititans', 35)
+    ('5CF2', 'CSK', 35)
 ),
 db AS (SELECT lower(player_id) AS k, player_id, name, status, sold_to, sold_price FROM players)
 -- 1. Row by row: the log vs the database
@@ -106,8 +106,8 @@ WITH expected (team_name, spend, tokens_left) AS (
     ('Mavericks', 970, 30),
     ('Quality Strikers', 940, 60),
     ('Pirates', 990, 10),
-    ('CSK', 965, 35),
-    ('Digititans', 1000, 0)
+    ('CSK', 1000, 0),
+    ('Digititans', 970, 30)
 )
 SELECT
   e.team_name, e.spend AS log_spend, e.tokens_left AS log_tokens_left,

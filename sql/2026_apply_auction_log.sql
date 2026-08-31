@@ -73,14 +73,14 @@ WITH log (player_id, team_name, sold_price) AS (
     ('8F4M', 'CSK', 160),
     ('PVF0', 'CSK', 85),
     ('6RMK', 'Digititans', 40),
-    ('71hl', 'Digititans', 275),
+    ('71hl', 'Digititans', 280),
     ('9BTD', 'Digititans', 40),
     ('5WR8', 'Digititans', 85),
     ('6FXM', 'Digititans', 240),
     ('7V94', 'Digititans', 45),
     ('7CFH', 'Digititans', 85),
     ('8MTK', 'Digititans', 155),
-    ('5CF2', 'Digititans', 35)
+    ('5CF2', 'CSK', 35)
 )
 UPDATE players p
 SET status = 'Sold', sold_to = l.team_name, sold_price = l.sold_price

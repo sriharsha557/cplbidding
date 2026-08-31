@@ -732,10 +732,17 @@ export const SQUADS_2026 = {
         "role": "Batsman",
         "photo": "9K4V.jpg",
         "price": 35
+      },
+      {
+        "playerId": "5CF2",
+        "name": "Madhusudan Chella",
+        "role": "Batsman",
+        "photo": "",
+        "price": 35
       }
     ],
-    "spent": 965,
-    "tokensLeft": 35
+    "spent": 1000,
+    "tokensLeft": 0
   },
   "CPL_T08": {
     "teamId": "CPL_T08",
@@ -783,7 +790,7 @@ export const SQUADS_2026 = {
         "name": "Nagaraju.muddana",
         "role": "All-rounder",
         "photo": "71HL.jpg",
-        "price": 275
+        "price": 280
       },
       {
         "playerId": "6FXM",
@@ -833,17 +840,10 @@ export const SQUADS_2026 = {
         "role": "All-rounder",
         "photo": "9BTD.jpg",
         "price": 40
-      },
-      {
-        "playerId": "5CF2",
-        "name": "Madhusudan Chella",
-        "role": "Batsman",
-        "photo": "",
-        "price": 35
       }
     ],
-    "spent": 1000,
-    "tokensLeft": 0
+    "spent": 970,
+    "tokensLeft": 30
   }
 };
 

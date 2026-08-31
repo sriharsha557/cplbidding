@@ -30,17 +30,17 @@ ON CONFLICT (team_id) DO UPDATE SET
 UPDATE players
 SET pre_auction_role = NULL, is_captain = FALSE, is_vice_captain = FALSE
 WHERE pre_auction_role IS NOT NULL
-   OR player_id IN ('2BJB', '7EK2', '8E25', '5DXX', 'LTI7', '6NN4', '2X2H', 'DPN8', 'XWX1', '91RY', '7B8V', '6RHV', 'XXK4', '7N91', '67HW', '4LQC', '43EB', 'CQX4', 'MXL5', 'MPB8', '615R', '44QM', '68EY', '5F0W', 'QHE1', '628B', '6RMT', '54YB', '930P', '6LJX', '304A', '14HB', 'CNC0', '4V2H', '8E1D', '5CLA', '917V', '7R2W', '61EX', '8Q1H');
+   OR player_id IN ('5DXX', '7EK2', '8E25', '2BJB', 'LTI7', '6NN4', '2X2H', 'DPN8', 'XWX1', '91RY', '7B8V', '6RHV', 'XXK4', '7N91', '67HW', '4LQC', '43EB', 'CQX4', 'MXL5', 'MPB8', '615R', '44QM', '68EY', '5F0W', 'QHE1', '628B', '6RMT', '54YB', '930P', '6LJX', '304A', '14HB', 'CNC0', '4V2H', '8E1D', '5CLA', '917V', '7R2W', '61EX', '8Q1H');
 
 INSERT INTO players (
   player_id, name, role, base_tokens, photo_filename, department,
   pre_auction_role, sold_to, is_captain, is_vice_captain, availability,
   status, sold_price
 ) VALUES
-  ('2BJB', 'Pradeep Kumar Pala', 'All-rounder', 0, '2BJB.jpg', 'All-rounder', 'Captain', 'Avengers', true, false, 'Unknown', 'PreAuction', 0),
+  ('5DXX', 'Siva Naga Kishore Raju Samanthapudi', 'All-rounder', 0, '5DXX.jpg', 'All-rounder', 'Captain', 'Avengers', true, false, 'Unknown', 'PreAuction', 0),
   ('7EK2', 'Kalyan Bollapragada SS', 'All-rounder', 0, '7EK2.jpg', 'All-rounder', 'ViceCaptain', 'Avengers', false, true, 'Unknown', 'PreAuction', 0),
   ('8E25', 'Mallikarjun Maram', 'All-rounder', 0, '8E25.jpg', 'All-rounder', 'Squad', 'Avengers', false, false, 'Unknown', 'PreAuction', 0),
-  ('5DXX', 'Siva Naga Kishore Raju Samanthapudi', 'All-rounder', 0, '5DXX.jpg', 'All-rounder', 'Squad', 'Avengers', false, false, 'Unknown', 'PreAuction', 0),
+  ('2BJB', 'Pradeep Kumar Pala', 'All-rounder', 0, '2BJB.jpg', 'All-rounder', 'Squad', 'Avengers', false, false, 'Unknown', 'PreAuction', 0),
   ('LTI7', 'Pavan Pulasani', 'All-rounder', 0, 'LTI7.jpg', 'All-rounder', 'Squad', 'Avengers', false, false, 'Unknown', 'PreAuction', 0),
   ('6NN4', 'Rajasekhara Reddy Gowkanapalli', 'All-rounder', 0, '6NN4.jpg', 'All-rounder', 'Captain', 'Fearless Falcons', true, false, 'Unknown', 'PreAuction', 0),
   ('2X2H', 'Chandra Sekhar Gubbala', 'All-rounder', 0, '2X2H.jpg', 'All-rounder', 'ViceCaptain', 'Fearless Falcons', false, true, 'Unknown', 'PreAuction', 0),
