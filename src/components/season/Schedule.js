@@ -43,8 +43,17 @@ const Schedule = ({ days = SCHEDULE_BY_DATE }) => (
         <article className="cpl-schedule__day" key={day.date}>
           <header className="cpl-schedule__day-head">
             <strong>{day.label}{day.tentative ? ' · date TBC' : ''}</strong>
-            <span>{day.stage}{day.matches[0].venue && day.matches[0].venue !== 'TBD' ? ` · ${day.matches[0].venue}` : ''}</span>
+            <span>
+              {day.stage}
+              {day.venue && (
+                <> · {day.venueUrl
+                  ? <a href={day.venueUrl} target="_blank" rel="noreferrer">{day.venue}</a>
+                  : day.venue}</>
+              )}
+            </span>
           </header>
+
+          {day.venueNote && <p className="cpl-schedule__note">{day.venueNote}</p>}
 
           {day.pools
             ? day.pools.map(({ pool, matches }) => (

@@ -213,6 +213,8 @@ body {
 .cpl-schedule__day-head { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; padding: 14px 18px; background: #173d49; color: #fff; }
 .cpl-schedule__day-head strong { font-size: 15px; }
 .cpl-schedule__day-head span { color: #f1c566; font-size: 11px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; }
+.cpl-schedule__note { margin: 0; padding: 8px 18px; color: #8a5c12; background: #fdf8ec; font-size: 12px; }
+.cpl-schedule__day-head a { color: inherit; text-decoration: underline; }
 .cpl-schedule__pool { padding: 12px 18px; }
 .cpl-schedule__pool h4 { margin: 0 0 8px; color: #b4791a; font-size: 11px; font-weight: 800; letter-spacing: .1em; text-transform: uppercase; }
 .cpl-schedule__table { width: 100%; border-collapse: collapse; font-size: 13px; }

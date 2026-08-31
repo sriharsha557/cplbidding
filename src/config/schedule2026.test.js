@@ -31,10 +31,35 @@ describe('SCHEDULE_2026', () => {
     });
   });
 
-  it('marks the 20 September matches (6 and 8) tentative', () => {
+  it('marks the 20 September matches (7 and 8) tentative', () => {
     const tentative = SCHEDULE_2026.filter(m => m.tentative);
-    expect(tentative.map(m => m.matchNo).sort()).toEqual([6, 8]);
+    expect(tentative.map(m => m.matchNo).sort((a, b) => a - b)).toEqual([7, 8]);
     tentative.forEach(m => expect(m.date).toBe('2026-09-20'));
+  });
+
+  it('plays the confirmed league dates at Runrate with a map link', () => {
+    SCHEDULE_2026
+      .filter(m => m.stage === 'League' && !m.tentative)
+      .forEach(m => {
+        expect(m.venue).toBe('Runrate');
+        expect(m.venueUrl).toMatch(/^https:\/\/maps\.app\.goo\.gl\//);
+      });
+  });
+
+  it('leaves the 20 September ground unset', () => {
+    SCHEDULE_2026.filter(m => m.date === '2026-09-20').forEach(m => {
+      expect(m.venue).toBe('To be confirmed');
+      expect(m.venueUrl).toBeNull();
+    });
+  });
+
+  it('sends the knockouts to Centurion with a map link', () => {
+    SCHEDULE_2026
+      .filter(m => m.stage !== 'League')
+      .forEach(m => {
+        expect(m.venue).toBe('Centurion');
+        expect(m.venueUrl).toMatch(/^https:\/\/maps\.app\.goo\.gl\//);
+      });
   });
 
   it('runs a full single round-robin per pool (each team plays the other three)', () => {
