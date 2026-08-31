@@ -67,4 +67,9 @@ describe('league phase', () => {
     expect(html).toContain('Pool B');
     expect(html).toContain('Match schedule');
   });
+
+  it('nudges viewers toward the venue map link', () => {
+    expect(html).toContain('maps.app.goo.gl');
+    expect(html).toContain('click for location');
+  });
 });

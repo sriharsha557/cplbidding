@@ -214,7 +214,13 @@ body {
 .cpl-schedule__day-head strong { font-size: 15px; }
 .cpl-schedule__day-head span { color: #f1c566; font-size: 11px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; }
 .cpl-schedule__note { margin: 0; padding: 8px 18px; color: #8a5c12; background: #fdf8ec; font-size: 12px; }
-.cpl-schedule__day-head a { color: inherit; text-decoration: underline; }
+.cpl-venue-link { display: inline-flex; align-items: baseline; gap: 5px; color: inherit; text-decoration: none; }
+.cpl-venue-link:hover { text-decoration: underline; }
+.cpl-venue-link__pin { display: inline-block; animation: cpl-pin-bounce 1.6s ease-in-out infinite; }
+.cpl-venue-link__hint { padding: 1px 7px; border: 1px solid currentColor; border-radius: 999px; font-size: 9px; font-weight: 800; letter-spacing: .03em; text-transform: none; white-space: nowrap; animation: cpl-hint-nudge 1.9s ease-in-out infinite; }
+@keyframes cpl-pin-bounce { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-3px); } }
+@keyframes cpl-hint-nudge { 0%, 100% { opacity: .5; transform: translateX(0); } 50% { opacity: 1; transform: translateX(3px); } }
+@media (prefers-reduced-motion: reduce) { .cpl-venue-link__pin, .cpl-venue-link__hint { animation: none; } .cpl-venue-link__hint { opacity: .9; } }
 .cpl-schedule__pool { padding: 12px 18px; }
 .cpl-schedule__pool h4 { margin: 0 0 8px; color: #b4791a; font-size: 11px; font-weight: 800; letter-spacing: .1em; text-transform: uppercase; }
 .cpl-schedule__table { width: 100%; border-collapse: collapse; font-size: 13px; }

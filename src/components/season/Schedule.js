@@ -42,13 +42,21 @@ const Schedule = ({ days = SCHEDULE_BY_DATE }) => (
       {days.map(day => (
         <article className="cpl-schedule__day" key={day.date}>
           <header className="cpl-schedule__day-head">
-            <strong>{day.label}{day.tentative ? ' · date TBC' : ''}</strong>
+            <strong>{day.label}{day.tentative ? ' · venue TBC' : ''}</strong>
             <span>
               {day.stage}
-              {day.venue && (
-                <> · {day.venueUrl
-                  ? <a href={day.venueUrl} target="_blank" rel="noreferrer">{day.venue}</a>
-                  : day.venue}</>
+              {day.venue && day.venueUrl && (
+                <> · <a
+                  className="cpl-venue-link"
+                  href={day.venueUrl}
+                  target="_blank"
+                  rel="noreferrer"
+                  title={`Open ${day.venue} in Google Maps`}
+                >
+                  <span className="cpl-venue-link__pin" aria-hidden="true">📍</span>
+                  {day.venue}
+                  <span className="cpl-venue-link__hint">click for location →</span>
+                </a></>
               )}
             </span>
           </header>

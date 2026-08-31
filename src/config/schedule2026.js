@@ -3,9 +3,10 @@ import { TEAMS_2026 } from './teams2026';
 /**
  * CPL 2026 match schedule — the fixture list as published by the organisers.
  *
- * Each pool plays a single round-robin (six matches). Matches 7 and 8 sit on a
- * tentative 20 September date; the rest run on the three Saturdays. Knockout
- * slots stay null with a `note` until the league table decides them.
+ * Each pool plays a single round-robin (six matches). Matches 7 and 8 run on
+ * 20 September at a ground still to be confirmed (`tentative`); the rest are on
+ * the three Saturdays at Runrate. Knockout slots stay null with a `note` until
+ * the league table decides them.
  */
 const LEAGUE_VENUE = 'Runrate';
 const LEAGUE_VENUE_MAP = 'https://maps.app.goo.gl/ZMXje57CPfVdBygu9';
@@ -21,7 +22,7 @@ const league = (matchNo, pool, date, time, teamA, teamB, extra = {}) => ({
   venue: LEAGUE_VENUE, venueUrl: LEAGUE_VENUE_MAP, teamA, teamB, ...extra
 });
 /** 20 September ground is not fixed yet. */
-const TBC = { venue: TBC_VENUE, venueUrl: null, tentative: true, venueNote: 'Ground to be confirmed — we’ll keep you posted' };
+const TBC = { venue: TBC_VENUE, venueUrl: null, tentative: true, venueNote: 'Ground to be confirmed — we’ll keep you posted.' };
 
 export const SCHEDULE_2026 = [
   // --- 12 September ---
