@@ -31,34 +31,21 @@ describe('SCHEDULE_2026', () => {
     });
   });
 
-  it('marks the 20 September matches (7 and 8) tentative', () => {
-    const tentative = SCHEDULE_2026.filter(m => m.tentative);
-    expect(tentative.map(m => m.matchNo).sort((a, b) => a - b)).toEqual([7, 8]);
-    tentative.forEach(m => expect(m.date).toBe('2026-09-20'));
-  });
-
-  it('plays the confirmed league dates at Runrate with a map link', () => {
+  it('plays every league match at Runrate with a map link', () => {
     SCHEDULE_2026
-      .filter(m => m.stage === 'League' && !m.tentative)
+      .filter(m => m.stage === 'League')
       .forEach(m => {
         expect(m.venue).toBe('Runrate');
         expect(m.venueUrl).toMatch(/^https:\/\/maps\.app\.goo\.gl\//);
       });
   });
 
-  it('leaves the 20 September ground unset', () => {
-    SCHEDULE_2026.filter(m => m.date === '2026-09-20').forEach(m => {
-      expect(m.venue).toBe('To be confirmed');
-      expect(m.venueUrl).toBeNull();
-    });
-  });
-
-  it('sends the knockouts to Centurion with a map link', () => {
+  it('sends the knockouts to VLCG with a map link', () => {
     SCHEDULE_2026
       .filter(m => m.stage !== 'League')
       .forEach(m => {
-        expect(m.venue).toBe('Centurion');
-        expect(m.venueUrl).toMatch(/^https:\/\/maps\.app\.goo\.gl\//);
+        expect(m.venue).toBe('Vijaya Laxmi Cricket Ground (VLCG)');
+        expect(m.venueUrl).toMatch(/^https:\/\//);
       });
   });
 
@@ -96,7 +83,7 @@ describe('SCHEDULE_2026', () => {
       '2026-09-12', '2026-09-19', '2026-09-20', '2026-09-26', '2026-10-03', '2026-10-04'
     ]);
     expect(SCHEDULE_BY_DATE[0].pools.map(p => p.pool)).toEqual(['Pool A', 'Pool B']);
-    expect(SCHEDULE_BY_DATE.find(d => d.date === '2026-09-20').tentative).toBe(true);
+    expect(SCHEDULE_BY_DATE.find(d => d.date === '2026-09-20').venue).toBe('Runrate');
     expect(SCHEDULE_BY_DATE.find(d => d.date === '2026-10-04').pools).toBeNull();
   });
 

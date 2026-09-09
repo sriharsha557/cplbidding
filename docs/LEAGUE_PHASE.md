@@ -65,12 +65,13 @@ Every team must appear exactly once (enforced by `pools2026.test.js`).
 
 ## 3. Schedule — `src/config/schedule2026.js`
 
-League fixtures are the full round-robin derived from the pool seeding above.
-Dates, times and overs come from the published grid (league 15 overs, knockouts
-20; Sept 12/19/26, Oct 3–4). Semis are Pool A winner v Pool B runner-up and Pool
-B winner v Pool A runner-up; those rows stay `teamA/teamB: null` with a `note`
-until the table decides them. `LEAGUE_VENUE` is still blank — set it once the
-ground is named. Knockouts are at Centurion.
+League fixtures are the published grid: dates, times and overs (league 15 overs,
+knockouts 20; Sept 12/19/20/26, Oct 3–4). Matches 7 and 8 are on 20 September at
+a ground still to be confirmed (`tentative`, `venue: 'To be confirmed'`). Semis
+are Pool A winner v Pool B runner-up and Pool B winner v Pool A runner-up; those
+rows stay `teamA/teamB: null` with a `note` until the table decides them.
+League matches are at Runrate, knockouts at Vijaya Laxmi Cricket Ground (VLCG);
+both carry a `venueUrl` map link that the schedule view animates.
 
 `SCHEDULE_BY_DATE` is the render-ready grouping (one block per Saturday, a
 mini-table per pool), mirroring the grid image.
