@@ -13,7 +13,7 @@ const LEAGUE_VENUE_MAP = 'https://maps.app.goo.gl/ZMXje57CPfVdBygu9';
 const KNOCKOUT_VENUE = 'Vijaya Laxmi Cricket Ground (VLCG)';
 const KNOCKOUT_VENUE_MAP = 'https://share.google/45RKlhVmIh8Q0yif6';
 const SLOT_1 = '11:00–13:30';
-const SLOT_2 = '14:30–17:00';
+const SLOT_2 = '14:00–17:00';
 
 const T = Object.fromEntries(TEAMS_2026.map(t => [t.name, t.id]));
 const league = (matchNo, pool, date, time, teamA, teamB) => ({
