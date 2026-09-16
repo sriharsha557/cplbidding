@@ -9,6 +9,7 @@ import LeaguePhaseShowcase from './season/LeaguePhaseShowcase';
 import { CPL_2026 } from '../config/cpl2026';
 import { TEAMS_2026, AUCTION_POOL_SIZE, SEASON_PHASE } from '../config/teams2026';
 import { TOTAL_MATCHES } from '../config/schedule2026';
+import { RESULTS_2026 } from '../config/results2026';
 
 const tabs = [
   { id: 'overview', label: 'Overview' },
@@ -18,6 +19,7 @@ const tabs = [
 ];
 
 const leagueTabs = [
+  { id: 'results', label: 'Results' },
   { id: 'squads', label: 'Squads' },
   { id: 'pools', label: 'Pools' },
   { id: 'schedule', label: 'Schedule' }
@@ -42,7 +44,7 @@ const SectionHeading = ({ eyebrow, title, children }) => (
 
 function HomePage({ auctionState, phase = SEASON_PHASE }) {
   const isLeague = phase === 'league';
-  const [activeView, setActiveView] = useState(isLeague ? 'squads' : 'overview');
+  const [activeView, setActiveView] = useState(isLeague ? 'results' : 'overview');
   const [currentTime, setCurrentTime] = useState(new Date());
   const {
     auctionStarted,
@@ -139,7 +141,11 @@ function HomePage({ auctionState, phase = SEASON_PHASE }) {
                 <Stat value={teamCount} label="Teams" accent="mint" />
                 <Stat value={2} label="Pools" />
                 <Stat value={TOTAL_MATCHES} label="Matches" accent="coral" />
-                <Stat value="12 Sep" label="Season starts" accent="lavender" />
+                <Stat
+                  value={RESULTS_2026.length ? `${RESULTS_2026.length}/${TOTAL_MATCHES}` : '12 Sep'}
+                  label={RESULTS_2026.length ? 'Matches played' : 'Season starts'}
+                  accent="lavender"
+                />
               </>
             ) : (
               <>

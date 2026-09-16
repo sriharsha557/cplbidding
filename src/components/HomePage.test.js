@@ -4,6 +4,7 @@ import HomePage from './HomePage';
 import { CPL_2026 } from '../config/cpl2026';
 import { TEAMS_2026, AUCTION_POOL_SIZE } from '../config/teams2026';
 import { TOTAL_MATCHES } from '../config/schedule2026';
+import { RESULTS_2026, CRICHEROES_URL } from '../config/results2026';
 
 const heroStats = html => {
   const block = html.split('cpl-scoreboard')[1] || '';
@@ -49,23 +50,31 @@ describe('pre-auction hero with real data', () => {
 describe('league phase', () => {
   const html = render({ phase: 'league', auctionState: { auctionStarted: true, currentPlayerIdx: 0, players: [], teams: {} } });
 
-  it('headlines teams, pools and the match count', () => {
+  it('headlines teams, pools, the match count and results played', () => {
     const stats = heroStats(html);
     expect(stats).toContain(`>${TEAMS_2026.length}<`);
     expect(stats).toContain(`>${TOTAL_MATCHES}<`);
+    expect(stats).toContain(`>${RESULTS_2026.length}/${TOTAL_MATCHES}<`);
   });
 
   it('shows the season tabs, not the auction tabs', () => {
+    expect(html).toContain('>Results<');
     expect(html).toContain('>Squads<');
     expect(html).toContain('>Pools<');
     expect(html).toContain('>Schedule<');
     expect(html).not.toContain('>Leaderboard<');
   });
 
-  it('renders the pools and schedule sections', () => {
+  it('renders the results, pools and schedule sections', () => {
+    expect(html).toContain('id="cpl-section-results"');
     expect(html).toContain('Pool A');
     expect(html).toContain('Pool B');
     expect(html).toContain('Match schedule');
+  });
+
+  it('links results to CricHeroes for live scores and upcoming matches', () => {
+    const count = (html.match(new RegExp(CRICHEROES_URL.replace(/[/.]/g, '\\$&'), 'g')) || []).length;
+    expect(count).toBeGreaterThanOrEqual(2);
   });
 
   it('nudges viewers toward the venue map link', () => {
